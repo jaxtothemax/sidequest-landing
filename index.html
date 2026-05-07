@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SideQuest — Find your next move at Consensus Miami</title>
+  <title>SideQuest — Your perfect conference, planned in 90 seconds</title>
+  <meta name="description" content="A 90-second quiz that builds your perfect conference schedule — talks, side-events, and people, tuned to how you work the room." />
   <link rel="preconnect" href="https://api.fontshare.com" />
   <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&f[]=satoshi@300,400,500&display=swap" rel="stylesheet" />
   <style>
@@ -429,8 +430,17 @@
     }
     .how-grid::before {
       content:''; position: absolute; top:30px;
-      left: calc(16.66% + 20px); right: calc(16.66% + 20px);
-      height: 1px; background: linear-gradient(90deg, var(--blue), var(--purple), var(--red)); opacity: 0.4;
+      left: calc(16.66% + 36px); right: calc(16.66% + 36px);
+      height: 1px;
+      background: linear-gradient(90deg,
+        var(--blue),
+        var(--purple) calc(50% - 36px),
+        transparent calc(50% - 36px),
+        transparent calc(50% + 36px),
+        var(--purple) calc(50% + 36px),
+        var(--red)
+      );
+      opacity: 0.4;
     }
     .how-step { text-align: center; padding: 0 24px; position: relative; }
     .step-number {
@@ -457,19 +467,44 @@
       transition: transform 0.3s, border-color 0.3s, background 0.3s;
     }
     .event-card:hover { transform: translateY(-4px); border-color: var(--border-hover); }
-    .event-card-img  { height: 160px; position: relative; overflow: hidden; }
-    .img-token2049   { background: linear-gradient(135deg,#1a0a2e,#0a1530,#0a2240); }
-    .img-staking     { background: linear-gradient(135deg,#0a2010,#0d2a1a,#0a1530); }
-    .img-ethproofs   { background: linear-gradient(135deg,#1a1030,#200a3a,#0f0a20); }
-    .event-card-img-inner { width:100%; height:100%; }
-    .img-token2049::after, .img-staking::after, .img-ethproofs::after {
-      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      font-family: 'Cabinet Grotesk',sans-serif; font-weight:800; color:rgba(255,255,255,0.14);
-      letter-spacing:-1px; line-height:1.2; text-align:center;
+    .event-card-img  { height: 180px; position: relative; overflow: hidden; }
+    .event-card-img-inner { width:100%; height:100%; position: relative; }
+    /* Subtle dot/grid pattern overlay shared by all three card visuals */
+    .event-card-img-inner::before {
+      content:''; position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.10) 1px, transparent 1.5px);
+      background-size: 14px 14px;
+      opacity: 0.55; pointer-events: none;
     }
-    .img-token2049::after  { content:'TOKEN2049';    font-size:28px; }
-    .img-staking::after    { content:'STAKING\ASUMMIT'; font-size:22px; white-space:pre; }
-    .img-ethproofs::after  { content:'ETH PROOFS';   font-size:22px; }
+    .img-stable-summit {
+      background:
+        radial-gradient(ellipse 60% 50% at 30% 105%, rgba(230,44,90,0.55) 0%, transparent 65%),
+        radial-gradient(ellipse 70% 60% at 80% -10%, rgba(59,130,246,0.30) 0%, transparent 70%),
+        linear-gradient(180deg, #0A1530 0%, #1E3A8A 55%, #4B0F2A 92%, #0F0A1F 100%);
+    }
+    .img-founders-lunch {
+      background:
+        radial-gradient(circle at 50% 75%, rgba(245,158,11,0.55) 0%, transparent 50%),
+        radial-gradient(circle at 25% 30%, rgba(217,119,6,0.32) 0%, transparent 45%),
+        linear-gradient(135deg, #1F1208 0%, #3B1F0A 55%, #0F0805 100%);
+    }
+    .img-after-dark {
+      background:
+        radial-gradient(circle at 18% 82%, rgba(230,44,90,0.65) 0%, transparent 45%),
+        radial-gradient(circle at 82% 18%, rgba(59,130,246,0.60) 0%, transparent 45%),
+        linear-gradient(135deg, #050714 0%, #1A0A24 55%, #0A0A1F 100%);
+    }
+    .img-stable-summit::after, .img-founders-lunch::after, .img-after-dark::after {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      font-family: 'Cabinet Grotesk',sans-serif; font-weight:800;
+      color: rgba(255,255,255,0.22);
+      letter-spacing:-1.2px; line-height:1.0; text-align:center;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.45);
+      padding: 0 16px;
+    }
+    .img-stable-summit::after  { content:'STABLE\ASUMMIT IV'; font-size:30px; white-space:pre; }
+    .img-founders-lunch::after { content:'FOUNDERS\ALUNCH'; font-size:30px; white-space:pre; }
+    .img-after-dark::after     { content:'AFTER\ADARK'; font-size:34px; white-space:pre; }
     .event-card-badge { position:absolute; top:12px; left:12px; border-radius:100px; padding:4px 10px; font-size:11px; font-weight:500; }
     .badge-reward    { background:rgba(230,44,90,0.85);  color:white; }
     .badge-core      { background:rgba(59,130,246,0.85); color:white; }
@@ -557,10 +592,10 @@
     <ul class="nav-links">
       <li><a href="#features">Features</a></li>
       <li><a href="#how">How it works</a></li>
-      <li><a href="#events">Events</a></li>
+      <li><a href="#conferences">Conferences</a></li>
     </ul>
 
-    <a href="#cta" class="btn-primary">Get Early Access</a>
+    <a href="/quiz.html" class="btn-primary">Take Quiz</a>
 
     <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
       <!-- Moon (shown in dark mode) -->
@@ -594,34 +629,27 @@
   </div>
 
   <div class="hero-content">
-    <div class="hero-badge">
-      <div class="hero-badge-dot"></div>
-      Now live at Consensus Miami 2025
-    </div>
+    <h1>Your perfect conference,<br /><span class="gradient-text">planned in 90 seconds.</span></h1>
 
-    <h1>Your conference<br />has <span class="gradient-text">side quests.</span></h1>
-
-    <p>Find the best side events, meetups, parties, and activations happening around your conference — all in one place, all in real time.</p>
+    <p>Tell us a little about you. We'll build a schedule of talks, side-events, and people worth meeting — tuned to how you work the room.</p>
 
     <div class="hero-cta">
-      <a href="#cta" class="btn-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        Start Exploring
+      <a href="/quiz.html" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4L12 3z"/><path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"/><path d="M5 16l.6 1.4L7 18l-1.4.6L5 20l-.6-1.4L3 18l1.4-.6L5 16z"/></svg>
+        Take Quiz
       </a>
       <a href="#how" class="btn-outline">See how it works</a>
     </div>
 
-    <p class="hero-note">Free to use · No account needed to browse</p>
-
     <div class="phone-wrap">
       <div class="phone side">
-        <img src="assets/screen-events.png" alt="SideQuest event list screen" />
+        <img src="assets/screen-attendance.png" alt="SideQuest quiz — How are you attending? step" />
       </div>
       <div class="phone center">
-        <img src="assets/screen-event-details.png" alt="SideQuest event details screen" />
+        <img src="assets/screen-welcome.png" alt="SideQuest quiz — Your perfect conference, planned in 90 seconds" />
       </div>
       <div class="phone side">
-        <img src="assets/screen-map.png" alt="SideQuest map screen" />
+        <img src="assets/screen-pace.png" alt="SideQuest quiz — How do you like to do conferences? step" />
       </div>
     </div>
   </div>
@@ -631,19 +659,19 @@
 <div class="conference-strip">
   <div class="strip-inner">
     <div class="strip-item"><div class="strip-dot"></div>TOKEN2049 Dubai</div>
-    <div class="strip-item"><div class="strip-dot"></div>Consensus Miami</div>
-    <div class="strip-item"><div class="strip-dot"></div>ETH Denver</div>
-    <div class="strip-item"><div class="strip-dot"></div>Staking Summit</div>
+    <div class="strip-item"><div class="strip-dot"></div>ETHGlobal Bangkok</div>
+    <div class="strip-item"><div class="strip-dot"></div>Consensus Toronto</div>
     <div class="strip-item"><div class="strip-dot"></div>Devconnect</div>
     <div class="strip-item"><div class="strip-dot"></div>EthCC</div>
-    <div class="strip-item"><div class="strip-dot"></div>ETH Global</div>
+    <div class="strip-item"><div class="strip-dot"></div>ETH Denver</div>
+    <div class="strip-item"><div class="strip-dot"></div>Staking Summit</div>
     <div class="strip-item"><div class="strip-dot"></div>TOKEN2049 Dubai</div>
-    <div class="strip-item"><div class="strip-dot"></div>Consensus Miami</div>
-    <div class="strip-item"><div class="strip-dot"></div>ETH Denver</div>
-    <div class="strip-item"><div class="strip-dot"></div>Staking Summit</div>
+    <div class="strip-item"><div class="strip-dot"></div>ETHGlobal Bangkok</div>
+    <div class="strip-item"><div class="strip-dot"></div>Consensus Toronto</div>
     <div class="strip-item"><div class="strip-dot"></div>Devconnect</div>
     <div class="strip-item"><div class="strip-dot"></div>EthCC</div>
-    <div class="strip-item"><div class="strip-dot"></div>ETH Global</div>
+    <div class="strip-item"><div class="strip-dot"></div>ETH Denver</div>
+    <div class="strip-item"><div class="strip-dot"></div>Staking Summit</div>
   </div>
 </div>
 
@@ -651,39 +679,39 @@
 <section class="features" id="features">
   <div class="section-inner">
     <div class="features-header">
-      <div class="section-label">Features</div>
-      <h2>Everything happening.<br />Nothing missed.</h2>
-      <p class="section-sub">SideQuest brings the full conference city to your pocket — events, map, and rewards in one place.</p>
+      <div class="section-label">What you get</div>
+      <h2>Built around <span class="gradient-text">you.</span><br />Built around <span class="gradient-text">your week.</span></h2>
+      <p class="section-sub">Ten quick taps. A schedule that knows what you're here for.</p>
     </div>
     <div class="features-grid">
       <div class="feature-card blue">
         <div class="feature-icon blue">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M12 18v4"/><path d="m4.93 4.93 2.83 2.83"/><path d="m16.24 16.24 2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="m4.93 19.07 2.83-2.83"/><path d="m16.24 7.76 2.83-2.83"/></svg>
         </div>
-        <h3>Discover</h3>
-        <p>Browse every side event, meetup, party, and activation happening around the conference. Filter by what matters to you right now.</p>
+        <h3>Talks matched to your goals</h3>
+        <p>Pick what you're actually here for — fundraising, hiring, partnerships, learning. We surface the main-stage and breakout talks that move that needle, on the days you're in town.</p>
         <div class="feature-tags">
-          <span class="tag">happening now</span><span class="tag">party</span><span class="tag">networking</span><span class="tag">walkable</span>
+          <span class="tag">fundraising</span><span class="tag">hiring</span><span class="tag">partnerships</span><span class="tag">learning</span>
         </div>
       </div>
       <div class="feature-card red">
         <div class="feature-icon red">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="6" width="18" height="15" rx="2"/><path d="M3 11h18"/></svg>
         </div>
-        <h3>Navigate</h3>
-        <p>See it all on the map. Explore nearby events visually, check what's worth attending, and decide where to go next faster.</p>
+        <h3>Side-events for your style</h3>
+        <p>Tell us your pace and energy. We line up dinners, after-parties, workshops, and meetups that fit how you do conferences — selective, relaxed, or packed.</p>
         <div class="feature-tags">
-          <span class="tag">live map</span><span class="tag">nearby first</span><span class="tag">real-time</span>
+          <span class="tag">dinners</span><span class="tag">parties</span><span class="tag">workshops</span><span class="tag">meetups</span>
         </div>
       </div>
       <div class="feature-card purple">
         <div class="feature-icon purple">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
-        <h3>Earn Rewards</h3>
-        <p>Discover checkpoints, unlock rewards, and collect special spots as you move through the conference city all week.</p>
+        <h3>People worth meeting</h3>
+        <p>Founders, investors, journalists, builders — we flag who's in town and worth a coffee. Call out anyone by name and we'll keep an eye on their schedule too.</p>
         <div class="feature-tags">
-          <span class="tag">$ETH rewards</span><span class="tag">badges</span><span class="tag">checkpoints</span>
+          <span class="tag">founders</span><span class="tag">investors</span><span class="tag">must-meet</span>
         </div>
       </div>
     </div>
@@ -693,63 +721,63 @@
 <!-- ── HOW IT WORKS ── -->
 <section id="how">
   <div class="section-inner">
-    <div style="text-align:center;max-width:560px;margin:0 auto;">
+    <div style="text-align:center;max-width:640px;margin:0 auto;">
       <div class="section-label">How it works</div>
-      <h2>Three steps to unlock the city</h2>
+      <h2>Three steps. Ninety seconds. A week that delivers.</h2>
     </div>
     <div class="how-grid">
       <div class="how-step">
         <div class="step-number blue">1</div>
-        <h3>Pick your conference</h3>
-        <p>Open SideQuest and select your active conference. We pull every side event, activation, and gathering happening that week.</p>
+        <h3>Take the 90-second quiz</h3>
+        <p>Tell us who you are, what you're here for, and how you work the room. Ten quick taps — pick your conference, your goals, your pace, and the people you want to meet.</p>
       </div>
       <div class="how-step">
         <div class="step-number purple">2</div>
-        <h3>Browse & filter</h3>
-        <p>Scroll the list or jump to the map. Filter by time, category, distance, or reward status to find exactly what fits your day.</p>
+        <h3>We curate your week</h3>
+        <p>Talks, side-events, and people — picked for your goals, your days, your pace. No more digging through five Notion docs and a Telegram group at 2am.</p>
       </div>
       <div class="how-step">
         <div class="step-number red">3</div>
-        <h3>Go, check in, earn</h3>
-        <p>Head to the event, check in to earn rewards, and unlock special spots hidden across the conference city.</p>
+        <h3>Show up to the right things</h3>
+        <p>Review your schedule, tweak anything, follow it day-by-day. Skip nothing that matters — and skip everything that doesn't.</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ── EVENTS ── -->
-<section class="events-preview" id="events">
+<section class="events-preview" id="conferences">
   <div class="section-inner">
     <div class="events-header">
       <div>
-        <div class="section-label">Live events</div>
-        <h2>What's happening<br />this week</h2>
+        <div class="section-label">Sample day</div>
+        <h2>A day from your<br /><span class="gradient-text">TOKEN2049.</span></h2>
       </div>
-      <a href="#cta" class="btn-outline">View all events</a>
+      <a href="/quiz.html" class="btn-outline">Take the quiz</a>
     </div>
     <div class="events-scroll">
       <div class="event-card">
-        <div class="event-card-img"><div class="event-card-img-inner img-token2049"></div><span class="event-card-badge badge-reward">Reward</span></div>
+        <div class="event-card-img"><div class="event-card-img-inner img-stable-summit"></div><span class="event-card-badge badge-core">9:00 AM · Main stage</span></div>
         <div class="event-card-body">
-          <div class="event-card-meta"><span>29 Apr – 30 Apr</span><span>Madinat Jumeirah</span></div>
-          <h3>TOKEN2049 Dubai</h3>
-          <p>The global crypto ecosystem gathers in Dubai. Decision-makers, builders, and investors connect at the industry's flagship event.</p>
+          <div class="event-card-meta"><span>Wed · Day 1</span><span>Madinat Jumeirah</span></div>
+          <h3>Stable Summit IV</h3>
+          <p>Why we picked it: matches your <strong>Fundraising</strong> goal · 3 founders attending you'd want to meet.</p>
         </div>
       </div>
       <div class="event-card">
-        <div class="event-card-img"><div class="event-card-img-inner img-staking"></div><span class="event-card-badge badge-core">Core Event</span></div>
+        <div class="event-card-img"><div class="event-card-img-inner img-founders-lunch"></div><span class="event-card-badge badge-community">1:00 PM · Side event</span></div>
         <div class="event-card-body">
-          <div class="event-card-meta"><span>17 Nov – 22 Nov</span><span>Sheraton Buenos Aires</span></div>
-          <h3>The Staking Summit</h3>
-          <p>The leading global gathering for builders, investors, and institutions shaping the future of on-chain yield.</p>
+          <div class="event-card-meta"><span>Wed · Day 1</span><span>Soho House Dubai</span></div>
+          <h3>Founders Lunch · Stablecoins</h3>
+          <p>Why we picked it: small-room format matches your <strong>Quality conversations</strong> preference.</p>
         </div>
       </div>
       <div class="event-card">
-        <div class="event-card-img"><div class="event-card-img-inner img-ethproofs"></div><span class="event-card-badge badge-community">Community</span></div>
+        <div class="event-card-img"><div class="event-card-img-inner img-after-dark"></div><span class="event-card-badge badge-reward">8:00 PM · Night owl</span></div>
         <div class="event-card-body">
-          <div class="event-card-meta"><span>This week</span><span>ETH World's Fair</span></div>
-          <h3>Ethproofs Day</h3>
-          <p>An ultra-focused 80-seat workshop dedicated to shipping mandatory zkEVM proving on Ethereum L1. Sold out fast.</p>
+          <div class="event-card-meta"><span>Wed · Day 1</span><span>Five Palm Jumeirah</span></div>
+          <h3>Stablecoins After Dark</h3>
+          <p>Why we picked it: night-owl pace · 6 people on your radar are going.</p>
         </div>
       </div>
     </div>
@@ -762,17 +790,14 @@
   <div class="cta-bg-blue"></div>
   <div class="cta-content">
     <div class="section-label" style="justify-content:center;">Get started</div>
-    <h2>Ready to start<br /><span class="gradient-text">your side quest?</span></h2>
-    <p>SideQuest is currently live for Consensus Miami. Get early access and never miss what's happening around the conference again.</p>
+    <h2>Ready to plan<br /><span class="gradient-text">your week?</span></h2>
+    <p>Ninety seconds in. A whole conference out. Take the quiz and we'll build your schedule.</p>
     <div class="cta-buttons">
-      <a href="#" class="btn-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-        Download for iOS
+      <a href="/quiz.html" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4L12 3z"/><path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"/><path d="M5 16l.6 1.4L7 18l-1.4.6L5 20l-.6-1.4L3 18l1.4-.6L5 16z"/></svg>
+        Take Quiz
       </a>
-      <a href="#" class="btn-outline">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.28.16.59.24.91.24.28 0 .56-.06.82-.2l12.71-7.38-2.89-2.89L3.18 23.76zM.17 1.96C.06 2.22 0 2.5 0 2.82v18.36c0 .32.06.6.17.86l.1.09 10.27-10.27v-.24L.27 1.86l-.1.1zM20.87 10.35l-2.87-1.66-3.24 3.24 3.24 3.24 2.89-1.67c.82-.48.82-1.27-.02-1.75v.6zM4.09.44L16.8 7.82l-2.89 2.89L3.18.24A1.86 1.86 0 014.09.44z"/></svg>
-        Get on Android
-      </a>
+      <a href="#conferences" class="btn-outline">See a sample day</a>
     </div>
   </div>
 </section>
@@ -791,9 +816,9 @@
     <li><a href="#">Privacy</a></li>
     <li><a href="#">Terms</a></li>
     <li><a href="#">Contact</a></li>
-    <li><a href="#">Twitter / X</a></li>
+    <li><a href="https://x.com/sideqst" target="_blank" rel="noopener">Twitter / X</a></li>
   </ul>
-  <p class="footer-copy">© 2025 SideQuest. Built for the conference life.</p>
+  <p class="footer-copy">© 2026 SideQuest. Plan smarter. Show up sharper.</p>
 </footer>
 
 <script>

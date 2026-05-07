@@ -1,0 +1,1526 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SideQuest — Design System</title>
+<link rel="stylesheet" href="styles/tokens.css"/>
+<link rel="stylesheet" href="styles/shared.css"/>
+<style>
+/* ---------- DS page specific ---------- */
+.ds-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 48px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 40px 40px 120px;
+}
+.ds-side {
+  position: sticky;
+  top: 96px;
+  height: fit-content;
+  align-self: start;
+}
+.ds-side__group { margin-bottom: 24px; }
+.ds-side__label {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--fg-subtle);
+  margin-bottom: 8px;
+}
+.ds-side__link {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--fg-muted);
+  font-size: 13px;
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+.ds-side__link:hover { color: var(--fg-default); background: var(--bg-surface); }
+.ds-side__link.is-active { color: var(--fg-default); font-weight: 600; background: var(--bg-surface); }
+
+/* Color swatches */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+.swatch {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.swatch:hover { transform: translateY(-2px); }
+.swatch__chip { height: 88px; }
+.swatch__meta { padding: 10px 12px; }
+.swatch__name { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+.swatch__hex { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); }
+
+.ramp {
+  display: grid;
+  grid-template-columns: 140px repeat(10, 1fr);
+  gap: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.ramp__label {
+  padding: 14px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-right: none;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex; align-items: center;
+}
+.ramp__step {
+  height: 64px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+}
+.ramp__step-num { font-weight: 600; opacity: 0.7; }
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+.pair > div { padding: 12px; border-radius: 8px; font-size: 13px; }
+
+/* Semantic tokens table */
+.tok-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tok-table th, .tok-table td {
+  text-align: left;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.tok-table th {
+  font-weight: 600;
+  color: var(--fg-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.tok-table td.mono { font-family: var(--font-mono); font-size: 12px; }
+.tok-table .chip {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+/* Type specimens */
+.type-spec {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  display: grid;
+  grid-template-columns: 200px 1fr 140px;
+  gap: 32px;
+  align-items: baseline;
+}
+.type-spec:last-child { border-bottom: none; }
+.type-spec__meta { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); line-height: 1.6; }
+.type-spec__name { font-weight: 600; color: var(--fg-default); margin-bottom: 4px; font-family: var(--font-body); font-size: 13px; }
+.type-spec__sample { color: var(--fg-default); letter-spacing: -0.01em; }
+.type-spec__usage { font-size: 12px; color: var(--fg-muted); font-family: var(--font-mono); }
+
+/* Spacing visualizer */
+.spacing-grid { display: flex; flex-direction: column; gap: 8px; }
+.spacing-row {
+  display: grid;
+  grid-template-columns: 100px 100px 1fr;
+  gap: 24px;
+  align-items: center;
+  padding: 8px 0;
+}
+.spacing-row__name { font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+.spacing-row__px { font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted); }
+.spacing-row__bar { height: 12px; border-radius: 2px; background: var(--sq-blue); }
+
+/* Radius visualizer */
+.radius-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.radius-demo {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.radius-demo__box {
+  width: 80px; height: 80px;
+  background: var(--fg-default);
+}
+.radius-demo__name { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); text-align: center; }
+
+/* Shadow visualizer */
+.shadow-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.shadow-demo {
+  background: var(--bg-canvas);
+  height: 120px;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+/* Motion */
+.motion-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.motion-demo {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  height: 120px;
+}
+.motion-demo__ball {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sq-red), var(--sq-blue));
+  position: absolute;
+  top: 40px; left: 20px;
+  transition: left var(--duration-base) var(--ease-standard);
+}
+.motion-demo.is-active .motion-demo__ball { left: calc(100% - 60px); }
+.motion-demo__name { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); position: absolute; bottom: 12px; left: 20px; }
+.motion-demo__val { font-family: var(--font-mono); font-size: 11px; color: var(--fg-subtle); position: absolute; bottom: 12px; right: 20px; }
+
+/* Component showcase */
+.comp {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 24px;
+  background: var(--bg-canvas);
+}
+.comp__header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.comp__name { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+.comp__desc { font-size: 13px; color: var(--fg-muted); margin-top: 2px; }
+.comp__stage {
+  padding: 40px;
+  background: var(--bg-surface);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+}
+.comp__grid {
+  padding: 32px;
+  background: var(--bg-surface);
+  display: grid;
+  gap: 24px;
+}
+.comp__row {
+  display: grid;
+  gap: 16px;
+  align-items: center;
+}
+.comp__label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+.comp__states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+.comp__state {
+  display: flex; flex-direction: column; gap: 8px;
+  align-items: flex-start;
+}
+.comp__state-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ========== ACTUAL COMPONENT STYLES ========== */
+/* Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.005em;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-standard),
+              background var(--duration-fast) var(--ease-standard),
+              box-shadow var(--duration-fast) var(--ease-standard),
+              opacity var(--duration-fast) var(--ease-standard);
+  white-space: nowrap;
+}
+.btn:active { transform: scale(0.97); }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; }
+.btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+.btn--primary {
+  background: var(--fg-default);
+  color: var(--fg-inverse);
+}
+.btn--primary:hover { background: var(--sq-ink-700); }
+.btn--accent {
+  background: var(--sq-red);
+  color: #fff;
+  box-shadow: var(--shadow-brand);
+}
+.btn--accent:hover { background: var(--sq-red-600); }
+.btn--action {
+  background: var(--sq-blue);
+  color: #fff;
+  box-shadow: var(--shadow-action);
+}
+.btn--action:hover { background: var(--sq-blue-600); }
+.btn--outline {
+  background: transparent;
+  border-color: var(--border-default);
+  color: var(--fg-default);
+}
+.btn--outline:hover { background: var(--bg-surface-2); border-color: var(--border-strong); }
+.btn--ghost {
+  background: transparent;
+  color: var(--fg-default);
+}
+.btn--ghost:hover { background: var(--bg-surface-2); }
+
+.btn--sm { padding: 8px 16px; font-size: 13px; }
+.btn--lg { padding: 16px 32px; font-size: 17px; }
+.btn--icon { padding: 12px; width: 44px; height: 44px; }
+
+.btn--focus { outline: 3px solid var(--border-focus); outline-offset: 2px; }
+.btn--loading { color: transparent; pointer-events: none; position: relative; }
+.btn--loading::after {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  color: var(--fg-inverse);
+  animation: spin 0.8s linear infinite;
+}
+.btn--accent.btn--loading::after, .btn--action.btn--loading::after, .btn--primary.btn--loading::after { color: #fff; }
+.btn--outline.btn--loading::after, .btn--ghost.btn--loading::after { color: var(--fg-default); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Field */
+.field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 280px;
+  padding: 14px 16px;
+  background: var(--bg-canvas);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  font-size: 15px;
+  color: var(--fg-default);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              background var(--duration-fast) var(--ease-standard);
+}
+.field input {
+  all: unset;
+  flex: 1;
+  font: inherit;
+  color: inherit;
+}
+.field input::placeholder { color: var(--fg-subtle); }
+.field svg { width: 18px; height: 18px; color: var(--fg-subtle); flex-shrink: 0; }
+.field:hover { border-color: var(--border-default); }
+.field--focus { border-color: var(--border-focus); box-shadow: 0 0 0 4px rgba(59,130,246,0.12); }
+.field--error { border-color: var(--sq-red); }
+.field--error svg { color: var(--sq-red); }
+.field--disabled { opacity: 0.5; pointer-events: none; background: var(--bg-surface); }
+.field--filled { background: var(--bg-surface); border-color: transparent; }
+
+/* Tag */
+.tag-sq {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.tag-sq--reward { background: var(--sq-red); color: #fff; }
+.tag-sq--core { background: var(--fg-default); color: var(--fg-inverse); }
+.tag-sq--community { background: var(--sq-blue); color: #fff; }
+.tag-sq--neutral { background: var(--bg-surface-2); color: var(--fg-muted); }
+.tag-sq--outline { background: transparent; border: 1px solid var(--border-default); color: var(--fg-muted); }
+.tag-sq svg { width: 11px; height: 11px; }
+
+/* Chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-default);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-default);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+.chip:hover { background: var(--bg-surface); }
+.chip--selected { background: var(--fg-default); color: var(--fg-inverse); border-color: var(--fg-default); }
+.chip svg { width: 14px; height: 14px; }
+
+/* Event card */
+.event-card {
+  width: 335px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  transition: transform var(--duration-fast) var(--ease-standard),
+              box-shadow var(--duration-fast) var(--ease-standard);
+}
+.event-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+.event-card__img {
+  width: 92px; height: 92px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #BBC7FF, #FF8C8E);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.event-card__img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(-45deg, rgba(255,255,255,0.08) 0 2px, transparent 2px 10px);
+}
+.event-card__body { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.event-card__row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.event-card__time { font-size: 12px; color: var(--fg-muted); font-weight: 500; }
+.event-card__title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--fg-default); letter-spacing: -0.005em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.event-card__tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.event-card__location { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--fg-muted); margin-top: auto; }
+.event-card__location svg { width: 12px; height: 12px; }
+.event-card__bookmark {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--bg-canvas);
+  display: grid; place-items: center;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard);
+  flex-shrink: 0;
+}
+.event-card__bookmark svg { width: 13px; height: 13px; }
+.event-card__bookmark.is-saved { background: var(--sq-red); color: #fff; }
+
+/* Map pin */
+.map-pin {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+.map-pin__bubble {
+  width: 48px; height: 48px;
+  border-radius: 50% 50% 50% 4px;
+  background: var(--sq-red);
+  transform: rotate(-45deg);
+  display: grid; place-items: center;
+  box-shadow: var(--shadow-2);
+}
+.map-pin__bubble > * { transform: rotate(45deg); color: #fff; }
+.map-pin__bubble svg { width: 22px; height: 22px; }
+.map-pin--chest .map-pin__bubble { background: linear-gradient(135deg, #E62C5A, #FF4E72); }
+.map-pin--checkpoint .map-pin__bubble { background: var(--sq-blue); border-radius: 50%; }
+.map-pin--user .map-pin__bubble { background: var(--fg-default); border-radius: 50%; }
+.map-pin__shadow {
+  width: 24px; height: 6px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+  margin-top: 4px;
+  filter: blur(3px);
+}
+
+/* Bottom sheet */
+.sheet {
+  width: 335px;
+  background: var(--bg-canvas);
+  border-radius: 24px 24px 0 0;
+  padding: 16px 20px 24px;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.1);
+  border: 1px solid var(--border-subtle);
+  border-bottom: none;
+}
+.sheet__handle {
+  width: 36px; height: 4px;
+  background: var(--border-default);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.sheet__title { font-family: var(--font-display); font-weight: 700; font-size: 17px; margin-bottom: 4px; }
+.sheet__desc { font-size: 13px; color: var(--fg-muted); }
+
+/* Toast */
+.toast {
+  width: 320px;
+  background: var(--fg-default);
+  color: var(--fg-inverse);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  box-shadow: var(--shadow-3);
+  font-size: 13px;
+}
+.toast__dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--sq-red);
+  flex-shrink: 0;
+}
+.toast__body { flex: 1; }
+.toast__title { font-weight: 600; margin-bottom: 2px; }
+.toast__desc { opacity: 0.7; font-size: 12px; }
+
+/* Segmented control */
+.segmented {
+  display: inline-flex;
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  gap: 2px;
+}
+.segmented button {
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-muted);
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+.segmented button.is-active { background: var(--bg-canvas); color: var(--fg-default); box-shadow: var(--shadow-1); }
+
+/* Avatar */
+.avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sq-red-soft), var(--sq-blue-soft));
+  display: grid; place-items: center;
+  color: var(--fg-default);
+  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 14px;
+}
+.avatar--sm { width: 24px; height: 24px; font-size: 10px; }
+.avatar--lg { width: 64px; height: 64px; font-size: 22px; }
+
+/* Nav bar / tab bar */
+.tab-bar {
+  width: 335px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 8px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: var(--shadow-3);
+}
+.tab-bar__item {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.tab-bar__item.is-active { background: var(--fg-default); color: var(--fg-inverse); }
+.tab-bar__item svg { width: 20px; height: 20px; }
+
+/* Empty state */
+.empty-state {
+  width: 300px;
+  padding: 40px 24px;
+  text-align: center;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-lg);
+}
+.empty-state__mark { width: 48px; height: 48px; margin: 0 auto 16px; }
+.empty-state__title { font-family: var(--font-display); font-weight: 700; font-size: 17px; margin-bottom: 4px; }
+.empty-state__desc { font-size: 13px; color: var(--fg-muted); margin-bottom: 16px; }
+
+/* Skeleton */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-surface-2) 0%, var(--bg-surface) 50%, var(--bg-surface-2) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite var(--ease-standard);
+  border-radius: var(--radius-sm);
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* Do/Don't */
+.dd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dd {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.dd__demo {
+  height: 140px;
+  background: var(--bg-surface);
+  display: grid; place-items: center;
+  padding: 20px;
+}
+.dd__label {
+  padding: 10px 14px;
+  display: flex; align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.dd--do .dd__label { background: rgba(34, 160, 107, 0.1); color: #0F7E50; }
+.dd--dont .dd__label { background: rgba(230, 44, 90, 0.1); color: #C61E4A; }
+.dd__label svg { width: 14px; height: 14px; }
+
+/* Code block */
+.code {
+  background: var(--sq-ink-900);
+  color: #E3EAF0;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}
+.code .c-key { color: #8FA9FC; }
+.code .c-val { color: #FF8C9E; }
+.code .c-com { color: #6B7882; }
+
+/* Format toggle */
+.format-toggle {
+  display: inline-flex;
+  background: var(--bg-surface);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  gap: 2px;
+}
+.format-toggle button {
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--fg-muted);
+  border-radius: 5px;
+}
+.format-toggle button.is-active { background: var(--fg-default); color: var(--fg-inverse); }
+
+.hidden { display: none !important; }
+
+</style>
+<script type='text/javascript' nonce='LQyKONvjyzYXq6k8W/kejg==' src='https://claude.ai/Z5rR68P76gu7rvWk_R7WHRD1WMxTZrRN0nALqnfUNiQO-MmxfeQgVcsOEz4-cWWNoNuLTcosuJ0NKcUyop5DPLnQgxA3AK9VUrkJs26NbHP5ogQ3TxvMPXuZu_k9iUBjRJ39c3z4MFldNtjoYB_vWqRMgaYpODh6xN3uA3LfNG-ikSwZCS98FSnUjCCyUttN7RaxfiwCDgL0IUFrS_Wlg59oyoZMBpI7uKGKk_ABw42wqtDeQSfYNMgnIgALqhkPSIGyjSi4x9QMTrZr6aGoHbN2z2fdkWu9KrYLY7E26IZ-hw_AkmyzgdQxc0o2EBqUzMqZ7ZvTHcFFCtwcnQyvWSp7qeC24etGE8XM5bEwdlTaZHeDE_A5jrnG7LjLzXZnmg0Il3EZTjSvVMS6VRRHWI-3dH8Mt9NX-d2NWmxXvXXp0vXAS2PwxsAff6I0N4aJd2zVo_BZSFbK4lP96Ypf6YckQvRmnRjWYjx88jib0ZiupOaXYGkI2UtumQCXpdmtgMvj2dwMXQ0sj0ARg-fz4apS0l1M7fxf_f1ZSW1rYGc'></script></head>
+<body>
+<header class="doc-header">
+  <div class="doc-header__inner">
+    <a class="doc-header__brand" href="index.html">
+      <img src="assets/sq-mark.svg" alt="" width="24" height="24"/>
+      SideQuest
+    </a>
+    <nav class="doc-nav">
+      <a href="ds.html" aria-current="page">Design System</a>
+      <a href="screens.html">Screens</a>
+      <a href="brand.html">Brand</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="ds-layout">
+  <aside class="ds-side">
+    <div class="ds-side__group">
+      <div class="ds-side__label">Foundation</div>
+      <a class="ds-side__link" href="#color">Color</a>
+      <a class="ds-side__link" href="#type">Typography</a>
+      <a class="ds-side__link" href="#spacing">Spacing</a>
+      <a class="ds-side__link" href="#radius">Radius</a>
+      <a class="ds-side__link" href="#elevation">Elevation</a>
+      <a class="ds-side__link" href="#motion">Motion</a>
+      <a class="ds-side__link" href="#iconography">Icons</a>
+    </div>
+    <div class="ds-side__group">
+      <div class="ds-side__label">Components</div>
+      <a class="ds-side__link" href="#button">Button</a>
+      <a class="ds-side__link" href="#field">Text Field</a>
+      <a class="ds-side__link" href="#tag">Tag</a>
+      <a class="ds-side__link" href="#chip">Chip / Filter</a>
+      <a class="ds-side__link" href="#segmented">Segmented</a>
+      <a class="ds-side__link" href="#event-card">Event Card</a>
+      <a class="ds-side__link" href="#map-pin">Map Pin</a>
+      <a class="ds-side__link" href="#sheet">Bottom Sheet</a>
+      <a class="ds-side__link" href="#toast">Toast</a>
+      <a class="ds-side__link" href="#tab-bar">Tab Bar</a>
+      <a class="ds-side__link" href="#avatar">Avatar</a>
+      <a class="ds-side__link" href="#empty">Empty State</a>
+      <a class="ds-side__link" href="#skeleton">Skeleton</a>
+    </div>
+    <div class="ds-side__group">
+      <div class="ds-side__label">Export</div>
+      <a class="ds-side__link" href="#tokens-export">Token formats</a>
+    </div>
+  </aside>
+
+  <main>
+    <div class="doc-hero">
+      <div class="doc-hero__eyebrow">01 · FOUNDATION</div>
+      <h1 class="doc-hero__title">Design System</h1>
+      <p class="doc-hero__subtitle">A scalable, token-driven foundation for the SideQuest iOS app. Every component is spec'd with anatomy and states so design and engineering speak the same language.</p>
+    </div>
+
+    <!-- ============== COLOR ============== -->
+    <section class="section" id="color">
+      <div class="section__header">
+        <div class="section__title-group">
+          <div class="section__label">01 · Color</div>
+          <h2 class="section__title">Color</h2>
+          <p class="section__desc">Two hero accents — red <span class="mono">#E62C5A</span> and blue <span class="mono">#3B82F6</span> — inherited from the logo. Neutrals are cool-leaning to sit cleanly with both. Every semantic token has a light and dark value.</p>
+        </div>
+      </div>
+
+      <h3 class="subsection__title">Brand</h3>
+      <div class="swatch-grid" style="grid-template-columns:repeat(4,1fr);">
+        <div class="swatch"><div class="swatch__chip" style="background:#E62C5A"></div><div class="swatch__meta"><div class="swatch__name">Red (Primary)</div><div class="swatch__hex">#E62C5A</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#3B82F6"></div><div class="swatch__meta"><div class="swatch__name">Blue (Primary)</div><div class="swatch__hex">#3B82F6</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#FF8C8E"></div><div class="swatch__meta"><div class="swatch__name">Red Soft</div><div class="swatch__hex">#FF8C8E</div></div></div>
+        <div class="swatch"><div class="swatch__chip" style="background:#BBC7FF"></div><div class="swatch__meta"><div class="swatch__name">Blue Soft</div><div class="swatch__hex">#BBC7FF</div></div></div>
+      </div>
+
+      <h3 class="subsection__title">Ramps</h3>
+      <p class="subsection__desc">Ramps are always 50-700, evenly spaced. Use 500 for default, 600 for press, 700 for emphasis; 100-200 for tints; 50 for washes.</p>
+
+      <div id="ramps"></div>
+
+      <h3 class="subsection__title">Semantic tokens</h3>
+      <p class="subsection__desc">Every component references these — never a ramp value directly. Flip <span class="mono">data-theme</span> to swap light/dark.</p>
+
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <table class="tok-table">
+          <thead><tr><th>Token</th><th>Light</th><th>Dark</th><th>Purpose</th></tr></thead>
+          <tbody id="semanticTokens"></tbody>
+        </table>
+      </div>
+
+      <h3 class="subsection__title">Accessibility</h3>
+      <div class="swatch-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="card" style="padding:16px;"><div style="padding:20px;background:var(--bg-canvas);border-radius:8px;margin-bottom:8px;"><span style="color:var(--fg-default);font-weight:600;">Default on Canvas</span></div><div class="mono muted" style="font-size:11px;">AAA · 18.5:1</div></div>
+        <div class="card" style="padding:16px;"><div style="padding:20px;background:var(--sq-red);border-radius:8px;margin-bottom:8px;color:#fff;"><span style="font-weight:600;">White on Red</span></div><div class="mono muted" style="font-size:11px;">AA · 4.58:1 (14pt+ only)</div></div>
+        <div class="card" style="padding:16px;"><div style="padding:20px;background:var(--sq-blue);border-radius:8px;margin-bottom:8px;color:#fff;"><span style="font-weight:600;">White on Blue</span></div><div class="mono muted" style="font-size:11px;">AA · 4.52:1 (14pt+ only)</div></div>
+      </div>
+    </section>
+
+    <!-- ============== TYPE ============== -->
+    <section class="section" id="type">
+      <div class="section__header">
+        <div class="section__title-group">
+          <div class="section__label">02 · Type</div>
+          <h2 class="section__title">Typography</h2>
+          <p class="section__desc"><strong>Cabinet Grotesk</strong> for display and headings — geometric, expressive, on-brand. <strong>Satoshi</strong> for body and UI — highly legible at small sizes. Two typefaces. No exceptions.</p>
+        </div>
+      </div>
+
+      <div class="card" style="padding: 0;">
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">Display XL</div>
+            <div>Cabinet Grotesk · 700</div>
+            <div>72 / 76 · -0.02em</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-display);font-weight:700;font-size:72px;line-height:1.05;letter-spacing:-0.02em;">The quest begins.</div>
+          <div class="type-spec__usage">Hero / Splash</div>
+        </div>
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">Display LG</div>
+            <div>Cabinet Grotesk · 700</div>
+            <div>56 / 60 · -0.02em</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-display);font-weight:700;font-size:56px;line-height:1.05;letter-spacing:-0.02em;">Discover events</div>
+          <div class="type-spec__usage">Brand moments</div>
+        </div>
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">H1</div>
+            <div>Cabinet Grotesk · 700</div>
+            <div>32 / 38 · -0.01em</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-display);font-weight:700;font-size:32px;line-height:1.18;letter-spacing:-0.01em;">TOKEN2049 Dubai</div>
+          <div class="type-spec__usage">Screen title</div>
+        </div>
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">H2</div>
+            <div>Cabinet Grotesk · 700</div>
+            <div>24 / 30 · -0.01em</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-display);font-weight:700;font-size:24px;line-height:1.25;letter-spacing:-0.01em;">Side Events</div>
+          <div class="type-spec__usage">Section header</div>
+        </div>
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">H3</div>
+            <div>Cabinet Grotesk · 700</div>
+            <div>20 / 26</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1.3;">Stable Summit IV</div>
+          <div class="type-spec__usage">Card title</div>
+        </div>
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">H4</div>
+            <div>Cabinet Grotesk · 700</div>
+            <div>18 / 24</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-display);font-weight:700;font-size:18px;line-height:1.3;">Sign in to continue</div>
+          <div class="type-spec__usage">Sheet title</div>
+        </div>
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">Body LG</div>
+            <div>Satoshi · 500</div>
+            <div>16 / 24</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-body);font-weight:500;font-size:16px;line-height:1.5;">Swipe the map to explore every side event around you.</div>
+          <div class="type-spec__usage">Onboarding body</div>
+        </div>
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">Body</div>
+            <div>Satoshi · 500</div>
+            <div>14 / 21</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-body);font-weight:500;font-size:14px;line-height:1.5;">TOKEN2049 will bring the global crypto ecosystem back to Dubai in 2026.</div>
+          <div class="type-spec__usage">Default UI body</div>
+        </div>
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">Body SM</div>
+            <div>Satoshi · 500</div>
+            <div>13 / 18</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-body);font-weight:500;font-size:13px;line-height:1.5;">Secondary text, dense lists, metadata.</div>
+          <div class="type-spec__usage">Inline meta</div>
+        </div>
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">Caption</div>
+            <div>Satoshi · 500</div>
+            <div>12 / 16</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-body);font-weight:500;font-size:12px;line-height:1.35;color:var(--fg-muted);">29 Apr · Madinat Jumeirah</div>
+          <div class="type-spec__usage">Card metadata</div>
+        </div>
+        <div class="type-spec">
+          <div class="type-spec__meta">
+            <div class="type-spec__name">Eyebrow</div>
+            <div>Satoshi · 700</div>
+            <div>11 / 16 · 0.06em · UPPER</div>
+          </div>
+          <div class="type-spec__sample" style="font-family:var(--font-body);font-weight:700;font-size:11px;line-height:1.4;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg-brand);">CORE EVENT</div>
+          <div class="type-spec__usage">Section labels</div>
+        </div>
+      </div>
+
+      <h3 class="subsection__title">Do / Don't</h3>
+      <div class="dd-grid">
+        <div class="dd dd--do">
+          <div class="dd__demo" style="display:block;padding:24px;">
+            <div style="font-family:var(--font-display);font-weight:700;font-size:22px;line-height:1.2;letter-spacing:-0.01em;margin-bottom:6px;">Stable Summit IV</div>
+            <div style="font-family:var(--font-body);font-size:13px;color:var(--fg-muted);">Cabinet Grotesk paired with Satoshi body.</div>
+          </div>
+          <div class="dd__label"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>DO use Cabinet for titles, Satoshi for body.</div>
+        </div>
+        <div class="dd dd--dont">
+          <div class="dd__demo" style="display:block;padding:24px;">
+            <div style="font-family:Georgia,serif;font-weight:700;font-size:22px;margin-bottom:6px;">Stable Summit IV</div>
+            <div style="font-family:Arial,sans-serif;font-size:13px;color:var(--fg-muted);">Mixed typefaces dilute the brand.</div>
+          </div>
+          <div class="dd__label"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>DON'T mix in other typefaces.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== SPACING ============== -->
+    <section class="section" id="spacing">
+      <div class="section__header">
+        <div class="section__title-group">
+          <div class="section__label">03 · Spacing</div>
+          <h2 class="section__title">Spacing</h2>
+          <p class="section__desc">A strict 4-point grid. Use tokens, never raw values. Small numbers for intra-component; larger numbers for layout.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="spacing-grid" id="spacingGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============== RADIUS ============== -->
+    <section class="section" id="radius">
+      <div class="section__header">
+        <div class="section__title-group">
+          <div class="section__label">04 · Radius</div>
+          <h2 class="section__title">Radius</h2>
+          <p class="section__desc">SideQuest leans soft but decisive. Default to <span class="mono">lg</span> (12px) for cards, <span class="mono">xl</span> (16px) for text fields, <span class="mono">pill</span> for buttons and tags.</p>
+        </div>
+      </div>
+      <div class="radius-grid">
+        <div class="radius-demo"><div class="radius-demo__box" style="border-radius:4px"></div><div class="radius-demo__name">xs · 4px</div></div>
+        <div class="radius-demo"><div class="radius-demo__box" style="border-radius:6px"></div><div class="radius-demo__name">sm · 6px</div></div>
+        <div class="radius-demo"><div class="radius-demo__box" style="border-radius:8px"></div><div class="radius-demo__name">md · 8px</div></div>
+        <div class="radius-demo"><div class="radius-demo__box" style="border-radius:12px"></div><div class="radius-demo__name">lg · 12px</div></div>
+        <div class="radius-demo"><div class="radius-demo__box" style="border-radius:16px"></div><div class="radius-demo__name">xl · 16px</div></div>
+        <div class="radius-demo"><div class="radius-demo__box" style="border-radius:20px"></div><div class="radius-demo__name">2xl · 20px</div></div>
+        <div class="radius-demo"><div class="radius-demo__box" style="border-radius:24px"></div><div class="radius-demo__name">3xl · 24px</div></div>
+        <div class="radius-demo"><div class="radius-demo__box" style="border-radius:50%"></div><div class="radius-demo__name">pill · 999px</div></div>
+      </div>
+    </section>
+
+    <!-- ============== ELEVATION ============== -->
+    <section class="section" id="elevation">
+      <div class="section__header">
+        <div class="section__title-group">
+          <div class="section__label">05 · Elevation</div>
+          <h2 class="section__title">Elevation</h2>
+          <p class="section__desc">Four tiers plus two branded glows. Shadows are warm-neutral — not pure black — to sit well against the cool neutrals.</p>
+        </div>
+      </div>
+      <div class="shadow-grid">
+        <div class="shadow-demo" style="box-shadow:var(--shadow-1)">shadow-1</div>
+        <div class="shadow-demo" style="box-shadow:var(--shadow-2)">shadow-2</div>
+        <div class="shadow-demo" style="box-shadow:var(--shadow-3)">shadow-3</div>
+        <div class="shadow-demo" style="box-shadow:var(--shadow-4)">shadow-4</div>
+        <div class="shadow-demo" style="box-shadow:var(--shadow-brand)">shadow-brand</div>
+        <div class="shadow-demo" style="box-shadow:var(--shadow-action)">shadow-action</div>
+      </div>
+    </section>
+
+    <!-- ============== MOTION ============== -->
+    <section class="section" id="motion">
+      <div class="section__header">
+        <div class="section__title-group">
+          <div class="section__label">06 · Motion</div>
+          <h2 class="section__title">Motion</h2>
+          <p class="section__desc">Motion should feel crisp, not bouncy. <strong>Standard</strong> for most transitions; <strong>spring</strong> for rewards, pin drops, confirmation moments. Click a tile to preview.</p>
+        </div>
+      </div>
+      <div class="motion-grid">
+        <div class="motion-demo" onclick="this.classList.toggle(&#39;is-active&#39;)"><div class="motion-demo__ball"></div><div class="motion-demo__name">standard · 240ms</div><div class="motion-demo__val">cubic-bezier(0.2, 0, 0, 1)</div></div>
+        <div class="motion-demo" style="--duration-base:150ms" onclick="this.classList.toggle(&#39;is-active&#39;)"><div class="motion-demo__ball"></div><div class="motion-demo__name">fast · 150ms</div><div class="motion-demo__val">button press, hover</div></div>
+        <div class="motion-demo" style="--duration-base:400ms;--ease-standard:cubic-bezier(0.3,0,0,1)" onclick="this.classList.toggle(&#39;is-active&#39;)"><div class="motion-demo__ball"></div><div class="motion-demo__name">emphasized · 400ms</div><div class="motion-demo__val">sheet open, page transition</div></div>
+        <div class="motion-demo" style="--duration-base:600ms;--ease-standard:cubic-bezier(0.34,1.56,0.64,1)" onclick="this.classList.toggle(&#39;is-active&#39;)"><div class="motion-demo__ball"></div><div class="motion-demo__name">spring · 600ms</div><div class="motion-demo__val">reward reveal, pin drop</div></div>
+      </div>
+
+      <h3 class="subsection__title">Named animations</h3>
+      <div class="card" style="padding:0;">
+        <table class="tok-table">
+          <thead><tr><th>Name</th><th>When</th><th>Duration</th><th>Easing</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">sheet.open</td><td>Bottom sheet rises</td><td class="mono">400ms</td><td class="mono">emphasized</td></tr>
+            <tr><td class="mono">sheet.close</td><td>Sheet dismisses</td><td class="mono">240ms</td><td class="mono">accelerate</td></tr>
+            <tr><td class="mono">pin.drop</td><td>Map pin lands</td><td class="mono">600ms</td><td class="mono">spring</td></tr>
+            <tr><td class="mono">pin.tap</td><td>Pin selects, enlarges</td><td class="mono">240ms</td><td class="mono">spring</td></tr>
+            <tr><td class="mono">reward.reveal</td><td>Chest opens</td><td class="mono">900ms</td><td class="mono">emphasized → spring</td></tr>
+            <tr><td class="mono">toast.in</td><td>Toast slides up</td><td class="mono">240ms</td><td class="mono">decelerate</td></tr>
+            <tr><td class="mono">card.press</td><td>Event card tap</td><td class="mono">150ms</td><td class="mono">standard (scale 0.98)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============== ICONS ============== -->
+    <section class="section" id="iconography">
+      <div class="section__header">
+        <div class="section__title-group">
+          <div class="section__label">07 · Icons</div>
+          <h2 class="section__title">Iconography</h2>
+          <p class="section__desc">We standardize on <strong>Lucide</strong> — clean, consistent 24×24 stroke icons with 2px weight. They map mentally to SF Symbols, giving iOS devs a familiar system. Import specific glyphs; don't bundle the whole set.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:16px;" id="iconGrid"></div>
+      </div>
+      <h3 class="subsection__title">Sizes</h3>
+      <div class="comp__stage" style="border-radius:12px;border:1px solid var(--border-subtle);">
+        <div style="display:flex;gap:32px;align-items:center;">
+          <div style="text-align:center;"><svg width="14" height="14" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div class="mono muted" style="font-size:11px;margin-top:8px;">14px</div></div>
+          <div style="text-align:center;"><svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div class="mono muted" style="font-size:11px;margin-top:8px;">16px</div></div>
+          <div style="text-align:center;"><svg width="20" height="20" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div class="mono muted" style="font-size:11px;margin-top:8px;">20px default</div></div>
+          <div style="text-align:center;"><svg width="24" height="24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div class="mono muted" style="font-size:11px;margin-top:8px;">24px</div></div>
+          <div style="text-align:center;"><svg width="32" height="32" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div class="mono muted" style="font-size:11px;margin-top:8px;">32px</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== COMPONENTS ============== -->
+    <div class="doc-hero" style="padding-top:64px;">
+      <div class="doc-hero__eyebrow">02 · LIBRARY</div>
+      <h1 class="doc-hero__title">Components</h1>
+      <p class="doc-hero__subtitle">Each component is defined by anatomy + all states. Devs implement once; everything derives from tokens.</p>
+    </div>
+
+    <!-- BUTTON -->
+    <section class="section" id="button">
+      <div class="section__header">
+        <div class="section__title-group">
+          <div class="section__label">Component</div>
+          <h2 class="section__title">Button</h2>
+          <p class="section__desc">Five variants × three sizes × seven states. Icon-only variant available for tight UI. Always use the pill radius.</p>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="comp__header">
+          <div><div class="comp__name">Variants</div><div class="comp__desc">Primary is black-on-white — most common CTA. Accent red for reward/celebratory moments. Action blue for map/search affordances.</div></div>
+        </div>
+        <div class="comp__stage">
+          <button class="btn btn--primary">Primary</button>
+          <button class="btn btn--accent">Accent</button>
+          <button class="btn btn--action">Action</button>
+          <button class="btn btn--outline">Outline</button>
+          <button class="btn btn--ghost">Ghost</button>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="comp__header"><div><div class="comp__name">Sizes</div><div class="comp__desc">SM (32h) · Default (44h, iOS hit target) · LG (52h)</div></div></div>
+        <div class="comp__stage">
+          <button class="btn btn--primary btn--sm">Small</button>
+          <button class="btn btn--primary">Default</button>
+          <button class="btn btn--primary btn--lg">Large</button>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="comp__header"><div><div class="comp__name">States</div></div></div>
+        <div class="comp__grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+          <div class="comp__state"><div class="comp__state-label">Default</div><button class="btn btn--accent">Continue</button></div>
+          <div class="comp__state"><div class="comp__state-label">Hover</div><button class="btn btn--accent" style="background:var(--sq-red-600)">Continue</button></div>
+          <div class="comp__state"><div class="comp__state-label">Pressed</div><button class="btn btn--accent" style="transform:scale(0.97)">Continue</button></div>
+          <div class="comp__state"><div class="comp__state-label">Focus</div><button class="btn btn--accent btn--focus">Continue</button></div>
+          <div class="comp__state"><div class="comp__state-label">Loading</div><button class="btn btn--accent btn--loading">Continue</button></div>
+          <div class="comp__state"><div class="comp__state-label">Disabled</div><button class="btn btn--accent" disabled="">Continue</button></div>
+          <div class="comp__state"><div class="comp__state-label">With icon</div><button class="btn btn--accent"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>Continue</button></div>
+          <div class="comp__state"><div class="comp__state-label">Icon only</div><button class="btn btn--primary btn--icon"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FIELD -->
+    <section class="section" id="field">
+      <div class="section__header">
+        <div class="section__title-group">
+          <div class="section__label">Component</div>
+          <h2 class="section__title">Text Field</h2>
+          <p class="section__desc">Rounded 16px pill. Leading icon optional; trailing affordance for clear/reveal/submit. Error state shifts border and icon color; never uses color alone — always pair with helper text.</p>
+        </div>
+      </div>
+      <div class="comp">
+        <div class="comp__grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));">
+          <div class="comp__state"><div class="comp__state-label">Empty</div><div class="field"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><input placeholder="you@sidequest.app"/></div></div>
+          <div class="comp__state"><div class="comp__state-label">Filled</div><div class="field field--filled"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><input value="pietro@sidequest.app"/></div></div>
+          <div class="comp__state"><div class="comp__state-label">Focus</div><div class="field field--focus"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><input value="pietro@"/></div></div>
+          <div class="comp__state"><div class="comp__state-label">Error</div>
+            <div><div class="field field--error"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><input value="notanemail"/></div><div style="color:var(--sq-red);font-size:12px;margin-top:6px;">Enter a valid email.</div></div>
+          </div>
+          <div class="comp__state"><div class="comp__state-label">Disabled</div><div class="field field--disabled"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><input value="locked@sidequest.app" disabled=""/></div></div>
+          <div class="comp__state"><div class="comp__state-label">Search</div><div class="field field--filled"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="Search events"/></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAG -->
+    <section class="section" id="tag">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Tag</h2>
+        <p class="section__desc">Short, high-signal labels. Four semantic variants plus outline. Never more than three tags on one card.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage">
+        <div class="tag-sq tag-sq--reward"><svg viewbox="0 0 24 24" fill="currentColor"><path d="M12 2l2.39 7.36H22l-6.19 4.5 2.36 7.14L12 16.5l-6.17 4.5 2.36-7.14L2 9.36h7.61z"/></svg>Reward</div>
+        <div class="tag-sq tag-sq--core">Core Event</div>
+        <div class="tag-sq tag-sq--community">Community</div>
+        <div class="tag-sq tag-sq--neutral">DeFi</div>
+        <div class="tag-sq tag-sq--neutral">Hackathon</div>
+        <div class="tag-sq tag-sq--outline">Paid</div>
+      </div></div>
+    </section>
+
+    <!-- CHIP -->
+    <section class="section" id="chip">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Chip / Filter</h2>
+        <p class="section__desc">Tappable filter. Default = unselected outline; selected = inverse fill. Supports leading icon and count badge.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage">
+        <button class="chip">All events</button>
+        <button class="chip chip--selected">Today</button>
+        <button class="chip">This week</button>
+        <button class="chip"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filters <span style="color:var(--fg-subtle);">3</span></button>
+        <button class="chip">DeFi</button>
+        <button class="chip chip--selected">Free</button>
+      </div></div>
+    </section>
+
+    <!-- SEGMENTED -->
+    <section class="section" id="segmented">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Segmented Control</h2>
+        <p class="section__desc">Two to four options, mutually exclusive. iOS-native feel. Used for List/Map view, Sort axis, etc.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage">
+        <div class="segmented"><button class="is-active">List</button><button>Map</button></div>
+        <div class="segmented"><button>Today</button><button class="is-active">This week</button><button>All</button></div>
+        <div class="segmented"><button class="is-active">Distance</button><button>Time</button><button>Popular</button><button>Reward</button></div>
+      </div></div>
+    </section>
+
+    <!-- EVENT CARD -->
+    <section class="section" id="event-card">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Event Card</h2>
+        <p class="section__desc">The central object in the app. Left: 92px square image. Right: time · title · 2 tags · location. Bookmark is always top-right.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage">
+        <div class="event-card">
+          <div class="event-card__img"></div>
+          <div class="event-card__body">
+            <div class="event-card__row"><span class="event-card__time">9:00 AM</span><div class="event-card__bookmark"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div></div>
+            <div class="event-card__title">Stable Summit IV</div>
+            <div class="event-card__tags"><span class="tag-sq tag-sq--neutral">Hackathon</span><span class="tag-sq tag-sq--neutral">DeFi</span></div>
+            <div class="event-card__location"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Sheraton Buenos Aires</div>
+          </div>
+        </div>
+        <div class="event-card">
+          <div class="event-card__img" style="background:linear-gradient(135deg,#FFD072,#E62C5A)"></div>
+          <div class="event-card__body">
+            <div class="event-card__row"><span class="event-card__time">2:30 PM</span><div class="event-card__bookmark is-saved"><svg viewbox="0 0 24 24" fill="currentColor"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div></div>
+            <div class="event-card__title">DeFi Day Keynote</div>
+            <div class="event-card__tags"><span class="tag-sq tag-sq--reward">Reward</span><span class="tag-sq tag-sq--core">Core</span></div>
+            <div class="event-card__location"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Madinat Jumeirah, Dubai</div>
+          </div>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- MAP PIN -->
+    <section class="section" id="map-pin">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Map Pin</h2>
+        <p class="section__desc">Four types. Event = red tear-drop. Chest = gradient celebratory. Checkpoint = blue dot. User = black dot. All pins use the pin.drop animation on mount.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage" style="gap:48px;">
+        <div style="text-align:center;"><div class="map-pin"><div class="map-pin__bubble"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="map-pin__shadow"></div></div><div class="mono muted" style="font-size:11px;margin-top:8px;">Event</div></div>
+        <div style="text-align:center;"><div class="map-pin map-pin--chest"><div class="map-pin__bubble"><svg viewbox="0 0 24 24" fill="currentColor"><path d="M12 2l2.39 7.36H22l-6.19 4.5 2.36 7.14L12 16.5l-6.17 4.5 2.36-7.14L2 9.36h7.61z"/></svg></div><div class="map-pin__shadow"></div></div><div class="mono muted" style="font-size:11px;margin-top:8px;">Reward Chest</div></div>
+        <div style="text-align:center;"><div class="map-pin map-pin--checkpoint"><div class="map-pin__bubble" style="width:28px;height:28px;"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="map-pin__shadow" style="width:14px;"></div></div><div class="mono muted" style="font-size:11px;margin-top:8px;">Checkpoint</div></div>
+        <div style="text-align:center;"><div class="map-pin map-pin--user"><div class="map-pin__bubble" style="width:20px;height:20px;"></div><div class="map-pin__shadow" style="width:10px;"></div></div><div class="mono muted" style="font-size:11px;margin-top:8px;">User</div></div>
+      </div></div>
+    </section>
+
+    <!-- SHEET -->
+    <section class="section" id="sheet">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Bottom Sheet</h2>
+        <p class="section__desc">Three detents: <strong>peek</strong> (140), <strong>half</strong> (420), <strong>full</strong> (80% viewport). Handle always visible. Use sheet.open animation on detent change.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage" style="align-items:flex-end;background:linear-gradient(180deg,var(--bg-surface-2),var(--bg-surface));">
+        <div class="sheet" style="width:300px;"><div class="sheet__handle"></div><div class="sheet__title">Stable Summit IV</div><div class="sheet__desc">9:00 AM · Sheraton Buenos Aires</div></div>
+        <div class="sheet" style="width:300px;"><div class="sheet__handle"></div><div class="sheet__title">Filter events</div><div class="sheet__desc">Narrow by type, time and reward availability.</div><div style="margin-top:16px;display:flex;gap:6px;flex-wrap:wrap;"><button class="chip">DeFi</button><button class="chip chip--selected">Free</button><button class="chip">Hackathon</button></div></div>
+      </div></div>
+    </section>
+
+    <!-- TOAST -->
+    <section class="section" id="toast">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Toast</h2>
+        <p class="section__desc">Transient feedback. 4s default. Stacks top-down. Never blocks interaction.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage" style="flex-direction:column;">
+        <div class="toast"><div class="toast__dot" style="background:var(--sq-success);"></div><div class="toast__body"><div class="toast__title">Event saved</div><div class="toast__desc">Added to your schedule.</div></div></div>
+        <div class="toast"><div class="toast__dot"></div><div class="toast__body"><div class="toast__title">Reward unlocked</div><div class="toast__desc">+200 XP · Tap to view</div></div></div>
+        <div class="toast"><div class="toast__dot" style="background:var(--sq-warning);"></div><div class="toast__body"><div class="toast__title">Location off</div><div class="toast__desc">Enable to see nearby events.</div></div></div>
+      </div></div>
+    </section>
+
+    <!-- TAB BAR -->
+    <section class="section" id="tab-bar">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Tab Bar</h2>
+        <p class="section__desc">Floating pill. 4 items max. 44px hit targets. Active item uses inverse fill, not a color. Respects safe area.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage" style="background:linear-gradient(180deg,var(--bg-surface),var(--bg-surface-2));">
+        <div class="tab-bar">
+          <div class="tab-bar__item is-active"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div class="tab-bar__item"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div class="tab-bar__item"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.39 7.36H22l-6.19 4.5 2.36 7.14L12 16.5l-6.17 4.5 2.36-7.14L2 9.36h7.61z"/></svg></div>
+          <div class="tab-bar__item"><svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- AVATAR -->
+    <section class="section" id="avatar">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Avatar</h2>
+        <p class="section__desc">Three sizes. Always circular. Default fallback uses the SideQuest gradient with initials.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage">
+        <div class="avatar avatar--sm">P</div>
+        <div class="avatar">PS</div>
+        <div class="avatar avatar--lg">PS</div>
+        <div class="avatar" style="background:#CBD5E1;">+4</div>
+      </div></div>
+    </section>
+
+    <!-- EMPTY -->
+    <section class="section" id="empty">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Empty State</h2>
+        <p class="section__desc">Always uses the quadrant mark as mascot. One sentence context, one primary action.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage">
+        <div class="empty-state">
+          <img src="assets/sq-mark.svg" class="empty-state__mark" style="opacity:0.5;"/>
+          <div class="empty-state__title">No saved events yet</div>
+          <div class="empty-state__desc">Bookmark events to see them here.</div>
+          <button class="btn btn--primary btn--sm">Browse events</button>
+        </div>
+        <div class="empty-state">
+          <img src="assets/sq-mark.svg" class="empty-state__mark" style="opacity:0.5;"/>
+          <div class="empty-state__title">Nothing to claim</div>
+          <div class="empty-state__desc">Check in at a chest pin to unlock rewards.</div>
+          <button class="btn btn--accent btn--sm">Open map</button>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- SKELETON -->
+    <section class="section" id="skeleton">
+      <div class="section__header"><div class="section__title-group">
+        <div class="section__label">Component</div>
+        <h2 class="section__title">Skeleton</h2>
+        <p class="section__desc">Shimmer placeholder. Matches exact shape/size of the real component. Shows for any load > 200ms.</p>
+      </div></div>
+      <div class="comp"><div class="comp__stage">
+        <div style="width:335px;background:var(--bg-surface);border-radius:12px;padding:10px;display:flex;gap:12px;border:1px solid var(--border-subtle);">
+          <div class="skeleton" style="width:92px;height:92px;border-radius:8px;"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;padding:4px 0;">
+            <div class="skeleton" style="width:60px;height:12px;"></div>
+            <div class="skeleton" style="width:80%;height:18px;"></div>
+            <div class="skeleton" style="width:50%;height:14px;"></div>
+            <div class="skeleton" style="width:70%;height:12px;margin-top:auto;"></div>
+          </div>
+        </div>
+      </div></div>
+    </section>
+
+    <!-- TOKEN EXPORT -->
+    <section class="section" id="tokens-export">
+      <div class="section__header">
+        <div class="section__title-group">
+          <div class="section__label">Export</div>
+          <h2 class="section__title">Token formats</h2>
+          <p class="section__desc">Same values, three outputs. Paste whichever one your stack consumes. The CSS file at <span class="mono">styles/tokens.css</span> is the source of truth.</p>
+        </div>
+        <div class="format-toggle" id="formatToggle">
+          <button class="is-active" data-fmt="css">CSS</button>
+          <button data-fmt="swift">Swift</button>
+          <button data-fmt="json">JSON</button>
+        </div>
+      </div>
+
+      <div class="code" id="tokenCodeCSS">:root {
+  <span class="c-com">/* Brand */</span>
+  <span class="c-key">--sq-red</span>:  <span class="c-val">#E62C5A</span>;
+  <span class="c-key">--sq-blue</span>: <span class="c-val">#3B82F6</span>;
+
+  <span class="c-com">/* Semantic — light */</span>
+  <span class="c-key">--bg-canvas</span>:     <span class="c-val">#FFFFFF</span>;
+  <span class="c-key">--bg-surface</span>:    <span class="c-val">#F7F9FB</span>;
+  <span class="c-key">--fg-default</span>:    <span class="c-val">#080F13</span>;
+  <span class="c-key">--fg-muted</span>:      <span class="c-val">#596265</span>;
+  <span class="c-key">--fg-brand</span>:      <span class="c-val">#E62C5A</span>;
+  <span class="c-key">--fg-action</span>:     <span class="c-val">#3B82F6</span>;
+
+  <span class="c-com">/* Type */</span>
+  <span class="c-key">--font-display</span>: <span class="c-val">'Cabinet Grotesk'</span>;
+  <span class="c-key">--font-body</span>:    <span class="c-val">'Satoshi'</span>;
+  <span class="c-key">--fs-h1</span>: <span class="c-val">32px</span>;
+  <span class="c-key">--fs-body</span>: <span class="c-val">14px</span>;
+
+  <span class="c-com">/* Space · 4pt grid */</span>
+  <span class="c-key">--space-3</span>: <span class="c-val">8px</span>;
+  <span class="c-key">--space-5</span>: <span class="c-val">16px</span>;
+
+  <span class="c-com">/* Radius */</span>
+  <span class="c-key">--radius-lg</span>:  <span class="c-val">12px</span>;
+  <span class="c-key">--radius-xl</span>:  <span class="c-val">16px</span>;
+  <span class="c-key">--radius-pill</span>: <span class="c-val">999px</span>;
+
+  <span class="c-com">/* Motion */</span>
+  <span class="c-key">--duration-base</span>: <span class="c-val">240ms</span>;
+  <span class="c-key">--ease-standard</span>: <span class="c-val">cubic-bezier(0.2, 0, 0, 1)</span>;
+}
+
+[data-theme=<span class="c-val">"dark"</span>] {
+  <span class="c-key">--bg-canvas</span>:  <span class="c-val">#080F13</span>;
+  <span class="c-key">--fg-default</span>: <span class="c-val">#F7F9FB</span>;
+  <span class="c-com">/* …all semantic tokens override */</span>
+}</div>
+
+      <div class="code hidden" id="tokenCodeSwift"><span class="c-com">// SideQuestTheme.swift</span>
+<span class="c-key">import</span> SwiftUI
+
+<span class="c-key">enum</span> SQ {
+  <span class="c-key">enum</span> Color {
+    <span class="c-key">static let</span> red    = SwiftUI.Color(<span class="c-val">"SQRed"</span>)      <span class="c-com">// #E62C5A</span>
+    <span class="c-key">static let</span> blue   = SwiftUI.Color(<span class="c-val">"SQBlue"</span>)     <span class="c-com">// #3B82F6</span>
+    <span class="c-key">static let</span> bgCanvas  = SwiftUI.Color(<span class="c-val">"BgCanvas"</span>)    <span class="c-com">// auto light/dark</span>
+    <span class="c-key">static let</span> bgSurface = SwiftUI.Color(<span class="c-val">"BgSurface"</span>)
+    <span class="c-key">static let</span> fgDefault = SwiftUI.Color(<span class="c-val">"FgDefault"</span>)
+    <span class="c-key">static let</span> fgMuted   = SwiftUI.Color(<span class="c-val">"FgMuted"</span>)
+    <span class="c-key">static let</span> fgBrand   = SwiftUI.Color(<span class="c-val">"FgBrand"</span>)
+    <span class="c-key">static let</span> fgAction  = SwiftUI.Color(<span class="c-val">"FgAction"</span>)
+  }
+
+  <span class="c-key">enum</span> Font {
+    <span class="c-key">static let</span> displayXL = SwiftUI.Font.custom(<span class="c-val">"CabinetGrotesk-Bold"</span>, size: <span class="c-val">72</span>)
+    <span class="c-key">static let</span> h1        = SwiftUI.Font.custom(<span class="c-val">"CabinetGrotesk-Bold"</span>, size: <span class="c-val">32</span>)
+    <span class="c-key">static let</span> h2        = SwiftUI.Font.custom(<span class="c-val">"CabinetGrotesk-Bold"</span>, size: <span class="c-val">24</span>)
+    <span class="c-key">static let</span> body      = SwiftUI.Font.custom(<span class="c-val">"Satoshi-Medium"</span>, size: <span class="c-val">14</span>)
+    <span class="c-key">static let</span> caption   = SwiftUI.Font.custom(<span class="c-val">"Satoshi-Medium"</span>, size: <span class="c-val">12</span>)
+  }
+
+  <span class="c-key">enum</span> Space {
+    <span class="c-key">static let</span> xs: CGFloat = <span class="c-val">4</span>
+    <span class="c-key">static let</span> sm: CGFloat = <span class="c-val">8</span>
+    <span class="c-key">static let</span> md: CGFloat = <span class="c-val">16</span>
+    <span class="c-key">static let</span> lg: CGFloat = <span class="c-val">24</span>
+  }
+
+  <span class="c-key">enum</span> Radius {
+    <span class="c-key">static let</span> lg: CGFloat  = <span class="c-val">12</span>
+    <span class="c-key">static let</span> xl: CGFloat  = <span class="c-val">16</span>
+    <span class="c-key">static let</span> pill: CGFloat = <span class="c-val">999</span>
+  }
+}</div>
+
+      <div class="code hidden" id="tokenCodeJSON">{
+  <span class="c-key">"$schema"</span>: <span class="c-val">"https://design-tokens.org/schema.json"</span>,
+  <span class="c-key">"color"</span>: {
+    <span class="c-key">"brand"</span>: {
+      <span class="c-key">"red"</span>:  { <span class="c-key">"$type"</span>: <span class="c-val">"color"</span>, <span class="c-key">"$value"</span>: <span class="c-val">"#E62C5A"</span> },
+      <span class="c-key">"blue"</span>: { <span class="c-key">"$type"</span>: <span class="c-val">"color"</span>, <span class="c-key">"$value"</span>: <span class="c-val">"#3B82F6"</span> }
+    },
+    <span class="c-key">"fg"</span>: {
+      <span class="c-key">"default"</span>: { <span class="c-key">"$type"</span>: <span class="c-val">"color"</span>, <span class="c-key">"$value"</span>: <span class="c-val">"#080F13"</span> },
+      <span class="c-key">"muted"</span>:   { <span class="c-key">"$type"</span>: <span class="c-val">"color"</span>, <span class="c-key">"$value"</span>: <span class="c-val">"#596265"</span> }
+    }
+  },
+  <span class="c-key">"font"</span>: {
+    <span class="c-key">"display"</span>: { <span class="c-key">"$type"</span>: <span class="c-val">"fontFamily"</span>, <span class="c-key">"$value"</span>: <span class="c-val">"Cabinet Grotesk"</span> },
+    <span class="c-key">"body"</span>:    { <span class="c-key">"$type"</span>: <span class="c-val">"fontFamily"</span>, <span class="c-key">"$value"</span>: <span class="c-val">"Satoshi"</span> }
+  },
+  <span class="c-key">"space"</span>: {
+    <span class="c-key">"3"</span>: { <span class="c-key">"$type"</span>: <span class="c-val">"dimension"</span>, <span class="c-key">"$value"</span>: <span class="c-val">"8px"</span> },
+    <span class="c-key">"5"</span>: { <span class="c-key">"$type"</span>: <span class="c-val">"dimension"</span>, <span class="c-key">"$value"</span>: <span class="c-val">"16px"</span> }
+  },
+  <span class="c-key">"radius"</span>: {
+    <span class="c-key">"lg"</span>:   { <span class="c-key">"$type"</span>: <span class="c-val">"dimension"</span>, <span class="c-key">"$value"</span>: <span class="c-val">"12px"</span> },
+    <span class="c-key">"pill"</span>: { <span class="c-key">"$type"</span>: <span class="c-val">"dimension"</span>, <span class="c-key">"$value"</span>: <span class="c-val">"999px"</span> }
+  }
+}</div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // theme
+  const toggle = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('sq-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  toggle.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', cur);
+    localStorage.setItem('sq-theme', cur);
+  });
+
+  // ramps
+  const ramps = [
+    { name: 'Red', key: 'red', colors: ['#FFF1F4','#FFE0E7','#FFC0CD','#FF8C9E','#FF4E72','#E62C5A','#C61E4A','#A0153D'] },
+    { name: 'Blue', key: 'blue', colors: ['#EFF5FF','#DBE8FE','#BBC7FF','#8FA9FC','#6088F7','#3B82F6','#2968DB','#1E4EB0'] },
+    { name: 'Ink', key: 'ink', colors: ['#F7F9FB','#F0F5F7','#E3EAF0','#CBD5E1','#94A3B8','#6B7882','#596265','#222C33','#111B23','#080F13'] },
+  ];
+  const rampSteps = [50,100,200,300,400,500,600,700,800,900];
+  const rampsEl = document.getElementById('ramps');
+  ramps.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'ramp';
+    row.style.gridTemplateColumns = `140px repeat(${r.colors.length},1fr)`;
+    row.innerHTML = `<div class="ramp__label">${r.name}</div>`;
+    r.colors.forEach((c, i) => {
+      const step = rampSteps[i];
+      const light = step < 400;
+      row.innerHTML += `<div class="ramp__step" style="background:${c};color:${light?'#222':'#fff'};"><span class="ramp__step-num">${step}</span><span>${c}</span></div>`;
+    });
+    rampsEl.appendChild(row);
+  });
+
+  // semantic tokens
+  const semantic = [
+    ['--bg-canvas','#FFFFFF','#080F13','App canvas'],
+    ['--bg-surface','#F7F9FB','#111B23','Raised surface, card'],
+    ['--bg-surface-2','#F0F5F7','#1A242C','Surface tint / input fill'],
+    ['--fg-default','#080F13','#F7F9FB','Primary text'],
+    ['--fg-muted','#596265','#94A3B8','Secondary text'],
+    ['--fg-subtle','#94A3B8','#6B7882','Tertiary / disabled text'],
+    ['--fg-brand','#E62C5A','#FF4E72','Brand emphasis'],
+    ['--fg-action','#3B82F6','#6088F7','Action emphasis'],
+    ['--border-subtle','#E3EAF0','#1A242C','Card dividers'],
+    ['--border-default','#CBD5E1','#222C33','Input borders'],
+    ['--border-strong','#080F13','#F7F9FB','Outline buttons, emphasized'],
+    ['--border-focus','#3B82F6','#6088F7','Focus ring'],
+  ];
+  const tbody = document.getElementById('semanticTokens');
+  semantic.forEach(([tok, light, dark, purpose]) => {
+    tbody.innerHTML += `<tr><td class="mono">${tok}</td><td class="mono"><span class="chip" style="background:${light}"></span>${light}</td><td class="mono"><span class="chip" style="background:${dark}"></span>${dark}</td><td>${purpose}</td></tr>`;
+  });
+
+  // spacing
+  const spacing = [
+    ['--space-1', 2], ['--space-2', 4], ['--space-3', 8], ['--space-4', 12],
+    ['--space-5', 16], ['--space-6', 20], ['--space-7', 24], ['--space-8', 32],
+    ['--space-9', 40], ['--space-10', 48], ['--space-11', 56], ['--space-12', 64],
+  ];
+  const sg = document.getElementById('spacingGrid');
+  spacing.forEach(([n, px]) => {
+    sg.innerHTML += `<div class="spacing-row"><div class="spacing-row__name">${n}</div><div class="spacing-row__px">${px}px</div><div class="spacing-row__bar" style="width:${px*2}px"></div></div>`;
+  });
+
+  // icons
+  const icons = {
+    'search': 'circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"',
+    'map-pin': 'path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"',
+    'calendar': 'rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"',
+    'bookmark': 'path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"',
+    'filter': 'polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"',
+    'arrow-right': 'path d="M5 12h14M13 5l7 7-7 7"',
+    'user': 'path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"',
+    'users': 'path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"',
+    'star': 'polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"',
+    'gift': 'polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"',
+    'heart': 'path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"',
+    'share': 'circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"',
+    'bell': 'path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"',
+    'x': 'line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"',
+    'check': 'polyline points="20 6 9 17 4 12"',
+    'chevron-right': 'polyline points="9 18 15 12 9 6"',
+    'chevron-down': 'polyline points="6 9 12 15 18 9"',
+    'list': 'line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"',
+    'sliders': 'line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"',
+    'clock': 'circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"',
+    'arrow-up-down': 'path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"',
+    'info': 'circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"',
+    'navigation': 'polygon points="3 11 22 2 13 21 11 13 3 11"',
+    'compass': 'circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"',
+  };
+  const grid = document.getElementById('iconGrid');
+  Object.entries(icons).forEach(([name, path]) => {
+    grid.innerHTML += `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px;border-radius:8px;background:var(--bg-surface);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}"/></svg>
+      <div class="mono muted" style="font-size:10px;">${name}</div>
+    </div>`;
+  });
+
+  // format toggle
+  document.querySelectorAll('#formatToggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#formatToggle button').forEach(x => x.classList.remove('is-active'));
+      b.classList.add('is-active');
+      const fmt = b.dataset.fmt;
+      ['CSS','Swift','JSON'].forEach(f => {
+        document.getElementById('tokenCode'+f).classList.toggle('hidden', f.toLowerCase() !== fmt);
+      });
+    });
+  });
+
+  // side nav active state
+  const links = document.querySelectorAll('.ds-side__link');
+  const targets = [...links].map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.toggle('is-active', l.getAttribute('href') === '#' + e.target.id));
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  targets.forEach(t => obs.observe(t));
+</script>
+</body>
+</html>
