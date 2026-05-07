@@ -509,23 +509,33 @@
   position: absolute; inset: 0;
   background: var(--background, #fff);
   display: flex; flex-direction: column;
-  cursor: pointer;
   overflow: hidden;
 }
 
-/* Schedule preview behind the sheet */
+/* Schedule preview behind the sheet — scrollable. Scrolling drives the
+   blur on .paywall__behind-inner and triggers the sheet to expand. */
 .paywall__behind {
-  flex: 1; min-height: 0;
-  padding: 20px 20px 0;
-  overflow: hidden;
+  position: absolute; inset: 0;
+  padding: 20px 20px 50%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
+.paywall__behind-inner {
+  display: flex; flex-direction: column;
+  transition: filter 0.05s linear, opacity 0.05s linear;
+  will-change: filter, opacity;
+}
+.paywall__behind-spacer { height: 200px; flex-shrink: 0; }
+
 .paywall__day {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 6px 12px; border-radius: 999px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   font-size: 12px; font-weight: 500; color: var(--fg-default);
+  align-self: flex-start;
 }
+.paywall__day--secondary { margin-top: 24px; }
 .paywall__day-dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--sq-red);
@@ -539,7 +549,7 @@
   display: flex; flex-direction: column; gap: 12px;
 }
 
-/* Bottom sheet */
+/* Bottom sheet — peek by default, jumps up to take over once expanded */
 .paywall__sheet {
   position: absolute; left: 0; right: 0; bottom: 0;
   background: var(--background, #fff);
@@ -548,8 +558,17 @@
   box-shadow: 0 -16px 40px rgba(8, 15, 19, 0.18);
   padding: 14px 20px calc(24px + env(safe-area-inset-bottom));
   display: flex; flex-direction: column;
-  max-height: 70%;
+  max-height: 56%;
   overflow-y: auto;
+  cursor: pointer;
+  transform: translateY(0);
+  transition:
+    max-height 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.4s ease;
+}
+.paywall[data-expanded] .paywall__sheet {
+  max-height: 92%;
+  box-shadow: 0 -24px 60px rgba(8, 15, 19, 0.28);
 }
 .paywall__handle {
   width: 36px; height: 4px; border-radius: 2px;

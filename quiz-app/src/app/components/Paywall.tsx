@@ -1,32 +1,92 @@
+import { useRef, useState } from "react";
 import { Lock, Zap, Check } from "lucide-react";
 import SymbolSVG from "../../imports/Symbol.svg";
-import { SEED_EVENTS, EventCard } from "./MainApp";
+import { SEED_EVENTS, EventCard, type Event } from "./MainApp";
 
 /**
- * Prototype paywall — sits between the onboarding "Done" screen and the
- * full app. Renders a peek of the user's Wednesday schedule behind a
- * bottom-sheet paywall card. ANY click anywhere on the screen advances
- * straight into the app.
+ * Prototype paywall.
+ *
+ * Default state: peek of the user's curated schedule on top, paywall
+ * sheet docked at the bottom showing the unlock pitch.
+ *
+ * As the user scrolls the schedule, the preview behind progressively
+ * blurs (driven by scroll progress 0..1). Once they cross ~55% of
+ * scrollable distance, the sheet snaps up to take over the screen.
+ *
+ * Click anywhere on the sheet → advances into the app (prototype).
  */
 export default function Paywall({ onUnlock }: { onUnlock: () => void }) {
-  const wednesday = SEED_EVENTS.filter((e) => e.day === 29 && e.inSchedule);
+  const scheduled: Event[] = SEED_EVENTS.filter((e) => e.inSchedule).sort(
+    (a, b) => a.day - b.day || a.start.localeCompare(b.start),
+  );
+  const wed = scheduled.filter((e) => e.day === 29);
+  const thu = scheduled.filter((e) => e.day === 30);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [expanded, setExpanded] = useState(false);
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const max = el.scrollHeight - el.clientHeight;
+    if (max <= 0) return;
+    const p = Math.min(Math.max(el.scrollTop / max, 0), 1);
+    setProgress(p);
+    if (p > 0.55 && !expanded) setExpanded(true);
+  };
 
   return (
-    <div className="paywall" onClick={onUnlock} role="dialog" aria-label="Unlock SideQuest">
-      <div className="paywall__behind">
-        <div className="paywall__day">
-          <span className="paywall__day-dot" />
-          Wednesday, April 29 · {wednesday.length} events
-        </div>
-        <h1 className="paywall__schedule-title">Your schedule</h1>
-        <div className="paywall__events">
-          {wednesday.map((e) => (
-            <EventCard key={e.id} event={e} />
-          ))}
+    <div
+      className="paywall"
+      data-expanded={expanded || undefined}
+      role="dialog"
+      aria-label="Unlock SideQuest"
+    >
+      <div
+        ref={scrollRef}
+        className="paywall__behind"
+        onScroll={handleScroll}
+      >
+        <div
+          className="paywall__behind-inner"
+          style={{
+            filter: `blur(${(progress * 10).toFixed(2)}px)`,
+            opacity: 1 - progress * 0.3,
+          }}
+        >
+          {wed.length > 0 && (
+            <>
+              <div className="paywall__day">
+                <span className="paywall__day-dot" />
+                Wednesday, April 29 · {wed.length} events
+              </div>
+              <h1 className="paywall__schedule-title">Your schedule</h1>
+              <div className="paywall__events">
+                {wed.map((e) => (
+                  <EventCard key={e.id} event={e} />
+                ))}
+              </div>
+            </>
+          )}
+          {thu.length > 0 && (
+            <>
+              <div className="paywall__day paywall__day--secondary">
+                <span className="paywall__day-dot" />
+                Thursday, April 30 · {thu.length} events
+              </div>
+              <div className="paywall__events">
+                {thu.map((e) => (
+                  <EventCard key={e.id} event={e} />
+                ))}
+              </div>
+            </>
+          )}
+          <div className="paywall__behind-spacer" />
         </div>
       </div>
 
-      <div className="paywall__sheet">
+      <div className="paywall__sheet" onClick={onUnlock}>
         <div className="paywall__handle" />
 
         <div className="paywall__brand">
