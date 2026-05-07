@@ -1,0 +1,13 @@
+quiz-app/node_modules
+quiz-app/dist
+quiz-app/.cache
+quiz-app/guidelines
+quiz-app/README.md
+quiz-app/ATTRIBUTIONS.md
+quiz-app/pnpm-workspace.yaml
+quiz-app/postcss.config.mjs
+quiz-app/default_shadcn_theme.css
+.git
+.claude
+.DS_Store
+*.log

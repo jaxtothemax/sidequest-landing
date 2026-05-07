@@ -570,11 +570,29 @@
       .nav-right { gap: 10px; }
       .nav-right .btn-primary { padding: 10px 16px; font-size: 14px; }
 
-      /* Hero: tighter padding, headline scales, CTAs stack full-width */
-      .hero { padding: 104px 16px 64px; }
-      .hero h1 { letter-spacing: -1px; }
-      .hero-cta { flex-direction: column; align-items: stretch; margin-bottom: 40px; }
-      .hero-cta .btn-primary, .hero-cta .btn-outline { text-align:center; justify-content:center; padding: 14px 24px; }
+      /* Hero: stretch top-to-bottom — headline up top, CTAs anchored to bottom */
+      .hero {
+        align-items: stretch;
+        padding: 96px 16px calc(28px + env(safe-area-inset-bottom));
+        min-height: 100svh;
+      }
+      .hero-content {
+        display: flex; flex-direction: column;
+        flex: 1; width: 100%;
+      }
+      .hero h1 {
+        font-size: clamp(40px, 11.5vw, 64px);
+        letter-spacing: -1.5px; line-height: 1.02;
+        margin-bottom: 20px;
+      }
+      .hero p { margin-bottom: 32px; max-width: none; }
+      .hero-cta {
+        margin-top: auto; margin-bottom: 0;
+        flex-direction: column; align-items: stretch;
+      }
+      .hero-cta .btn-primary, .hero-cta .btn-outline {
+        text-align:center; justify-content:center; padding: 16px 24px; font-size: 16px;
+      }
 
       /* Phone fan hidden on mobile — user is already on a phone */
       .phone-wrap { display: none; }
@@ -631,7 +649,7 @@
       <li><a href="#conferences">Conferences</a></li>
     </ul>
 
-    <a href="/quiz.html" class="btn-primary">Take Quiz</a>
+    <a href="/quiz/" class="btn-primary">Take Quiz</a>
 
     <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
       <!-- Moon (shown in dark mode) -->
@@ -670,7 +688,7 @@
     <p>Tell us a little about you. We'll build a schedule of talks, side-events, and people worth meeting — tuned to how you work the room.</p>
 
     <div class="hero-cta">
-      <a href="/quiz.html" class="btn-primary">
+      <a href="/quiz/" class="btn-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4L12 3z"/><path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"/><path d="M5 16l.6 1.4L7 18l-1.4.6L5 20l-.6-1.4L3 18l1.4-.6L5 16z"/></svg>
         Take Quiz
       </a>
@@ -789,7 +807,7 @@
         <div class="section-label">Sample day</div>
         <h2>A day from your<br /><span class="gradient-text">TOKEN2049.</span></h2>
       </div>
-      <a href="/quiz.html" class="btn-outline">Take the quiz</a>
+      <a href="/quiz/" class="btn-outline">Take the quiz</a>
     </div>
     <div class="events-scroll">
       <div class="event-card">
@@ -829,7 +847,7 @@
     <h2>Ready to plan<br /><span class="gradient-text">your week?</span></h2>
     <p>Ninety seconds in. A whole conference out. Take the quiz and we'll build your schedule.</p>
     <div class="cta-buttons">
-      <a href="/quiz.html" class="btn-primary">
+      <a href="/quiz/" class="btn-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4L12 3z"/><path d="M19 14l.9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14z"/><path d="M5 16l.6 1.4L7 18l-1.4.6L5 20l-.6-1.4L3 18l1.4-.6L5 16z"/></svg>
         Take Quiz
       </a>

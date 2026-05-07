@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd quiz-app && npm install --no-audit --no-fund && npm run build",
+  "framework": null,
+  "cleanUrls": true
+}
