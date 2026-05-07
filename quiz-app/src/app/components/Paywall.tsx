@@ -42,12 +42,14 @@ export default function Paywall({ onUnlock }: { onUnlock: () => void }) {
   };
 
   return (
-    <div
-      className="paywall"
-      data-stage={stage}
-      role="dialog"
-      aria-label="Unlock SideQuest"
-    >
+    <div className="sq-app">
+      <div className="sq-frame">
+        <div
+          className="paywall"
+          data-stage={stage}
+          role="dialog"
+          aria-label="Unlock SideQuest"
+        >
       <div
         ref={scrollRef}
         className="paywall__behind"
@@ -137,6 +139,8 @@ export default function Paywall({ onUnlock }: { onUnlock: () => void }) {
         <button className="paywall__alt" type="button">Other payment methods</button>
 
         <div className="paywall__footer">Secure checkout · Cancel anytime · Powered by Stripe</div>
+      </div>
+        </div>
       </div>
     </div>
   );
