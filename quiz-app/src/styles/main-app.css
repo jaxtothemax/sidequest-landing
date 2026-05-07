@@ -503,3 +503,140 @@
   color: var(--sq-red);
   cursor: pointer;
 }
+
+/* ─────────────── PAYWALL ─────────────── */
+.paywall {
+  position: absolute; inset: 0;
+  background: var(--background, #fff);
+  display: flex; flex-direction: column;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* Schedule preview behind the sheet */
+.paywall__behind {
+  flex: 1; min-height: 0;
+  padding: 20px 20px 0;
+  overflow: hidden;
+}
+.paywall__day {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 999px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  font-size: 12px; font-weight: 500; color: var(--fg-default);
+}
+.paywall__day-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--sq-red);
+}
+.paywall__schedule-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 22px; letter-spacing: -0.02em;
+  margin: 14px 0 16px;
+}
+.paywall__events {
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* Bottom sheet */
+.paywall__sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: var(--background, #fff);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  box-shadow: 0 -16px 40px rgba(8, 15, 19, 0.18);
+  padding: 14px 20px calc(24px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column;
+  max-height: 70%;
+  overflow-y: auto;
+}
+.paywall__handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--border-default);
+  margin: 0 auto 16px;
+}
+.paywall__brand {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 12px;
+}
+.paywall__lock {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--fg-default);
+}
+.paywall__mark { width: 22px; height: 22px; display: block; }
+
+.paywall__heading {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 22px; letter-spacing: -0.02em; line-height: 1.2;
+  text-align: center;
+  margin: 0 0 8px;
+}
+.paywall__sub {
+  text-align: center;
+  font-size: 14px; line-height: 1.45; color: var(--fg-muted);
+  margin: 0 0 16px;
+  max-width: 320px; align-self: center;
+}
+
+.paywall__features {
+  list-style: none; padding: 14px 16px; margin: 0 0 18px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.paywall__features li {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: var(--fg-default); font-weight: 500;
+}
+.paywall__feat-icon {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(230,44,90,0.10);
+  color: var(--sq-red);
+  flex-shrink: 0;
+}
+
+.paywall__price {
+  display: flex; align-items: flex-start; justify-content: center;
+  font-family: var(--font-display); font-weight: 800;
+  letter-spacing: -0.04em;
+  margin-bottom: 4px;
+}
+.paywall__currency { font-size: 22px; line-height: 1; padding-top: 6px; margin-right: 2px; color: var(--fg-default); }
+.paywall__amount { font-size: 38px; line-height: 1; color: var(--fg-default); }
+.paywall__price-sub {
+  text-align: center; font-size: 12px; color: var(--fg-muted);
+  margin-bottom: 18px;
+}
+
+.paywall__cta {
+  width: 100%;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 16px 24px; border-radius: 14px;
+  background: #000; color: #fff; border: 0;
+  font-family: var(--font-display); font-weight: 600; font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.paywall__cta-apple { display: block; }
+.paywall__cta-pay { font-weight: 700; letter-spacing: -0.01em; }
+
+.paywall__alt {
+  width: 100%;
+  background: transparent; border: 0;
+  padding: 12px;
+  font-family: var(--font-body); font-size: 14px; font-weight: 500;
+  color: var(--fg-default);
+  cursor: pointer;
+}
+
+.paywall__footer {
+  text-align: center;
+  font-size: 11px; color: var(--fg-subtle);
+  margin-top: 4px;
+}

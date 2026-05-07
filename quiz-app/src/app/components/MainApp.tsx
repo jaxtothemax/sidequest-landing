@@ -25,7 +25,7 @@ import type { State as OnboardingState } from "./Onboarding";
 
 type Tab = "chat" | "schedule" | "profile";
 
-type Event = {
+export type Event = {
   id: string;
   title: string;
   day: number;
@@ -39,7 +39,7 @@ type Event = {
   desc: string;
 };
 
-const SEED_EVENTS: Event[] = [
+export const SEED_EVENTS: Event[] = [
   { id: "e1", title: "Stable Summit IV", day: 29, start: "9:00 AM", end: "11:00 AM", venue: "Sheraton · Mina A'Salam", tag: "Founders", attendees: 320, match: 96, inSchedule: true, desc: "The flagship gathering for stablecoin builders, with talks from founders shipping at scale." },
   { id: "e2", title: "Investor Coffee — Seed Stage", day: 29, start: "11:30 AM", end: "12:30 PM", venue: "Madinat · Al Qasr Lobby", tag: "Investors", attendees: 80, match: 92, inSchedule: true, desc: "Curated 1:1 round-robin between founders and seed-stage funds." },
   { id: "e3", title: "DeFi Liquidity Panel", day: 29, start: "2:00 PM", end: "3:00 PM", venue: "Main Stage", tag: "DeFi", attendees: 600, match: 88, inSchedule: true, desc: "Top market makers and protocol leads on liquidity in the next cycle." },
@@ -401,7 +401,7 @@ function SchedulePage({ events, onToggle }: { events: Event[]; onToggle: (id: st
   );
 }
 
-function EventCard({ event, onToggle }: { event: Event; onToggle?: () => void }) {
+export function EventCard({ event, onToggle }: { event: Event; onToggle?: () => void }) {
   return (
     <article className={`ev-card ${event.inSchedule ? "is-in" : ""}`}>
       <div className="ev-card__time">
