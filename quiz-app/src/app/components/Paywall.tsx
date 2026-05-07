@@ -24,7 +24,7 @@ export default function Paywall({ onUnlock }: { onUnlock: () => void }) {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
-  const [expanded, setExpanded] = useState(false);
+  const [stage, setStage] = useState<"hidden" | "peek" | "expanded">("hidden");
 
   const handleScroll = () => {
     const el = scrollRef.current;
@@ -33,13 +33,18 @@ export default function Paywall({ onUnlock }: { onUnlock: () => void }) {
     if (max <= 0) return;
     const p = Math.min(Math.max(el.scrollTop / max, 0), 1);
     setProgress(p);
-    if (p > 0.55 && !expanded) setExpanded(true);
+    setStage((s) => {
+      if (p > 0.55) return "expanded";
+      if (s === "expanded") return "expanded";
+      if (p > 0.01) return "peek";
+      return s;
+    });
   };
 
   return (
     <div
       className="paywall"
-      data-expanded={expanded || undefined}
+      data-stage={stage}
       role="dialog"
       aria-label="Unlock SideQuest"
     >

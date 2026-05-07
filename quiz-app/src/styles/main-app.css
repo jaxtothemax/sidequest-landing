@@ -513,10 +513,10 @@
 }
 
 /* Schedule preview behind the sheet — scrollable. Scrolling drives the
-   blur on .paywall__behind-inner and triggers the sheet to expand. */
+   blur on .paywall__behind-inner and triggers the sheet to slide up. */
 .paywall__behind {
   position: absolute; inset: 0;
-  padding: 20px 20px 50%;
+  padding: 32px 20px 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -525,7 +525,7 @@
   transition: filter 0.05s linear, opacity 0.05s linear;
   will-change: filter, opacity;
 }
-.paywall__behind-spacer { height: 200px; flex-shrink: 0; }
+.paywall__behind-spacer { height: 60vh; flex-shrink: 0; }
 
 .paywall__day {
   display: inline-flex; align-items: center; gap: 8px;
@@ -549,7 +549,11 @@
   display: flex; flex-direction: column; gap: 12px;
 }
 
-/* Bottom sheet — peek by default, jumps up to take over once expanded */
+/* Bottom sheet — three stages, driven by scroll progress on the
+   schedule above:
+     hidden    : translated off the bottom, no shadow
+     peek      : slides up to ~56% of viewport (initial reveal)
+     expanded  : springs to ~92% takeover with a slight overshoot   */
 .paywall__sheet {
   position: absolute; left: 0; right: 0; bottom: 0;
   background: var(--background, #fff);
@@ -561,12 +565,17 @@
   max-height: 56%;
   overflow-y: auto;
   cursor: pointer;
-  transform: translateY(0);
+  transform: translateY(100%);
   transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
     max-height 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.4s ease;
 }
-.paywall[data-expanded] .paywall__sheet {
+.paywall[data-stage="peek"] .paywall__sheet,
+.paywall[data-stage="expanded"] .paywall__sheet {
+  transform: translateY(0);
+}
+.paywall[data-stage="expanded"] .paywall__sheet {
   max-height: 92%;
   box-shadow: 0 -24px 60px rgba(8, 15, 19, 0.28);
 }
