@@ -295,6 +295,11 @@
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   z-index: 5;
 }
+.scr-welcome__lockup {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 5;
+  width: 60%; max-width: 220px; height: auto; display: block;
+}
 .scr-welcome__panel {
   flex: 1;
   background: var(--bg-canvas);

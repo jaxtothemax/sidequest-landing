@@ -4,7 +4,6 @@ import {
   Calendar as CalendarIcon,
   User as UserIcon,
   Send,
-  Sparkles,
   Plus,
   Check,
   X,
@@ -55,7 +54,7 @@ const SEED_EVENTS: Event[] = [
   { id: "e12", title: "MENA Regulators Fireside", day: 30, start: "10:00 AM", end: "11:00 AM", venue: "Main Stage", tag: "Policy", attendees: 800, match: 70, inSchedule: false, desc: "VARA leadership on the future of MENA crypto policy." },
 ];
 
-type ChatMsg = { id: string; from: "agent" | "user"; text: string; chips?: string[] };
+type ChatMsg = { id: string; from: "agent" | "user"; text: string; chips?: string[]; events?: Event[] };
 
 const INITIAL_MESSAGES: ChatMsg[] = [
   {
@@ -155,9 +154,6 @@ function ChatPage({ events }: { events: Event[] }) {
             <span className="chat__dot" /> {scheduledCount} events on your plan
           </div>
         </div>
-        <button className="chat__icon-btn" aria-label="New chat">
-          <Sparkles size={18} />
-        </button>
       </div>
 
       <div ref={scrollRef} className="chat__scroll">
@@ -170,6 +166,13 @@ function ChatPage({ events }: { events: Event[] }) {
             )}
             <div className="chat-msg__bubble">
               <div className="chat-msg__text">{m.text}</div>
+              {m.events && m.events.length > 0 && (
+                <div className="chat-msg__events">
+                  {m.events.map((e) => (
+                    <EventCard key={e.id} event={e} />
+                  ))}
+                </div>
+              )}
               {m.chips && (
                 <div className="chat-msg__chips">
                   {m.chips.map((c) => (
@@ -259,9 +262,8 @@ function generateReply(text: string, events: Event[]): ChatMsg {
       id: `a${Date.now()}`,
       from: "agent",
       text:
-        `Wednesday plan, ${wed.length} events: ` +
-        wed.map((e) => `${e.start} ${e.title}`).join(" → ") +
-        ". The tightest gap is between the DeFi panel and the keynote (1hr) — should be fine. Want me to suggest people to meet at each one?",
+        `Here's your Wednesday — ${wed.length} events. Tightest gap is between the DeFi panel and the keynote (1hr). Want me to suggest people to meet at each one?`,
+      events: wed,
       chips: ["Suggest people", "Add a coffee break"],
     };
   }
@@ -399,7 +401,7 @@ function SchedulePage({ events, onToggle }: { events: Event[]; onToggle: (id: st
   );
 }
 
-function EventCard({ event, onToggle }: { event: Event; onToggle: () => void }) {
+function EventCard({ event, onToggle }: { event: Event; onToggle?: () => void }) {
   return (
     <article className={`ev-card ${event.inSchedule ? "is-in" : ""}`}>
       <div className="ev-card__time">
@@ -418,13 +420,15 @@ function EventCard({ event, onToggle }: { event: Event; onToggle: () => void }) 
           <span><Users size={12} /> {event.attendees}</span>
         </div>
       </div>
-      <button
-        className={`ev-card__action ${event.inSchedule ? "is-remove" : "is-add"}`}
-        onClick={onToggle}
-        aria-label={event.inSchedule ? "Remove from schedule" : "Add to schedule"}
-      >
-        {event.inSchedule ? <X size={16} /> : <Plus size={16} />}
-      </button>
+      {onToggle && (
+        <button
+          className={`ev-card__action ${event.inSchedule ? "is-remove" : "is-add"}`}
+          onClick={onToggle}
+          aria-label={event.inSchedule ? "Remove from schedule" : "Add to schedule"}
+        >
+          {event.inSchedule ? <X size={16} /> : <Plus size={16} />}
+        </button>
+      )}
     </article>
   );
 }

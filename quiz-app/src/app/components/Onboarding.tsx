@@ -18,8 +18,6 @@ import {
 } from "lucide-react";
 import SymbolSVG from "../../imports/Symbol.svg";
 import WhiteLogoSVG from "../../imports/White.svg";
-import svgPaths from "../../imports/LoginRedesignMinimalized/svg-a9kgcwo4rd";
-import LoginGraphic from "../../imports/Group1321316367-1/Group1321316367";
 
 type Role =
   | "founder"
@@ -230,7 +228,7 @@ function Header({
 }
 
 export default function Onboarding({ onComplete }: { onComplete?: (state: State) => void } = {}) {
-  const [step, setStep] = useState(-1); // -1 = login, 0 = welcome, 1..10 = steps, 11 = curating, 12 = done
+  const [step, setStep] = useState(0); // 0 = welcome, 1..10 = steps, 11 = curating, 12 = done
   const [state, setState] = useState<State>({
     conferenceId: "token2049",
     attendance: null,
@@ -250,7 +248,7 @@ export default function Onboarding({ onComplete }: { onComplete?: (state: State)
   );
 
   const next = () => setStep((s) => s + 1);
-  const back = () => setStep((s) => Math.max(-1, s - 1));
+  const back = () => setStep((s) => Math.max(0, s - 1));
   const skip = () => setStep((s) => s + 1);
   const goTo = (s: number) => setStep(s);
 
@@ -265,7 +263,6 @@ export default function Onboarding({ onComplete }: { onComplete?: (state: State)
   return (
     <div className="sq-app">
       <div className="sq-frame">
-        {step === -1 && <Login onNext={next} />}
         {step === 0 && <Welcome onStart={next} onSkip={() => setStep(12)} />}
         {step === 1 && (
           <ConferencePicker
@@ -365,95 +362,16 @@ export default function Onboarding({ onComplete }: { onComplete?: (state: State)
 
 /* ---------- Step components ---------- */
 
-function Login({ onNext }: { onNext: () => void }) {
-  const [email, setEmail] = useState("");
-
-  return (
-    <div className="scr-login">
-      <div className="scr-login__bg">
-        <div className="scr-login__graphic">
-          <LoginGraphic />
-        </div>
-      </div>
-      <div className="scr-login__content">
-        <div className="scr-login__header">
-          <img src={WhiteLogoSVG} alt="SideQuest" className="scr-login__logo" />
-          <div className="scr-login__header-text">
-            <h1>Welcome to SideQuest</h1>
-            <p>Begin your virtual adventure</p>
-          </div>
-        </div>
-        <div className="scr-login__card">
-          <div className="scr-login__form">
-            <h2>Sign in or create account</h2>
-            <div className="scr-login__input-group">
-              <input
-                type="email"
-                placeholder="something@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="scr-login__input"
-              />
-              <button className="btn-primary" onClick={onNext}>
-                Next
-              </button>
-            </div>
-          </div>
-          <div className="scr-login__divider">
-            <span />
-            <p>or continue with</p>
-            <span />
-          </div>
-          <div className="scr-login__social">
-            <button className="scr-login__social-btn" aria-label="Continue with Google">
-              <svg width="24" height="24" viewBox="0 0 23 23" fill="none">
-                <path fillRule="evenodd" clipRule="evenodd" d={svgPaths.p15d7be00} fill="#4285F4" />
-                <path fillRule="evenodd" clipRule="evenodd" d={svgPaths.p1f2f62f0} fill="#34A853" />
-                <path fillRule="evenodd" clipRule="evenodd" d={svgPaths.p2f8c9600} fill="#FBBC05" />
-                <path fillRule="evenodd" clipRule="evenodd" d={svgPaths.p14f01400} fill="#EA4335" />
-              </svg>
-            </button>
-            <button className="scr-login__social-btn scr-login__social-btn--dark" aria-label="Continue with Apple">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect width="24" height="24" fill="black" />
-                <path d={svgPaths.p2c445b80} fill="white" />
-              </svg>
-            </button>
-            <button className="scr-login__social-btn scr-login__social-btn--telegram" aria-label="Continue with Telegram">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path fillRule="evenodd" clipRule="evenodd" d={svgPaths.p13da7a00} fill="white" />
-              </svg>
-            </button>
-            <button className="scr-login__social-btn scr-login__social-btn--dark" aria-label="Continue with X">
-              <svg width="18.42" height="17.29" viewBox="0 0 18.4204 17.2926" fill="none">
-                <path d={svgPaths.p3c81fc00} fill="white" />
-              </svg>
-            </button>
-            <button className="scr-login__social-btn scr-login__social-btn--eth" aria-label="Continue with Ethereum">
-              <svg width="14" height="21" viewBox="0 0 13.1259 20.9961" fill="none">
-                <path d={svgPaths.p1e31ae00} fill="white" />
-                <path d={svgPaths.p216d3780} fill="white" />
-                <path d={svgPaths.p35af5100} fill="white" />
-                <path d={svgPaths.p1bd3400} fill="white" />
-                <path d={svgPaths.p19ead900} fill="white" />
-                <path d={svgPaths.p321e5080} fill="white" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function Welcome({ onStart, onSkip }: { onStart: () => void; onSkip: () => void }) {
   return (
     <div className="scr-welcome">
       <div className="scr-welcome__hero">
         <button className="scr-welcome__skip" onClick={onSkip}>Skip</button>
-        <div className="scr-welcome__mark"><SQMark size={100} /></div>
+        <img src={WhiteLogoSVG} alt="SideQuest" className="scr-welcome__lockup" />
       </div>
       <div className="scr-welcome__panel">
+        <Header step={1} total={TOTAL_STEPS} hideBack hideSkip />
+        <div className="scr__step-label">Step 1 of 10</div>
         <h1 className="scr-welcome__title">
           Your <em>perfect</em> conference, planned in 90 seconds.
         </h1>
