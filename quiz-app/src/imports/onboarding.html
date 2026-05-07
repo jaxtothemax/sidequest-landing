@@ -1,0 +1,1702 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SideQuest — Onboarding</title>
+<link rel="stylesheet" href="styles/tokens.css"/>
+<link rel="stylesheet" href="styles/shared.css"/>
+<style>
+  body { background: var(--bg-canvas); }
+
+  .canvas {
+    padding: 56px 40px 120px;
+    max-width: 1640px;
+    margin: 0 auto;
+  }
+  .page-hero {
+    margin-bottom: 56px;
+    max-width: 880px;
+  }
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--fg-brand); margin-bottom: 12px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before { content:''; width: 28px; height:2px; background: var(--fg-brand); }
+  h1.page-title {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(40px, 6vw, 72px); letter-spacing: -0.025em; line-height: 1.0;
+    margin-bottom: 18px;
+  }
+  .page-sub {
+    font-size: 18px; color: var(--fg-muted); line-height: 1.5; max-width: 70ch;
+  }
+
+  .controls {
+    display:flex; gap: 12px; align-items:center; margin-top: 28px; flex-wrap: wrap;
+  }
+  .seg {
+    display: inline-flex; gap: 0; background: var(--bg-surface-2);
+    border-radius: var(--radius-pill); padding: 4px;
+  }
+  .seg button {
+    padding: 8px 16px; border-radius: var(--radius-pill);
+    font-size: 13px; font-weight: 600; color: var(--fg-muted);
+    transition: all var(--duration-fast) var(--ease-standard);
+  }
+  .seg button[aria-pressed="true"] {
+    background: var(--bg-canvas); color: var(--fg-default);
+    box-shadow: var(--shadow-1);
+  }
+
+  .step {
+    margin-bottom: 64px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .step__head {
+    display:grid; grid-template-columns: 80px 1fr; gap: 24px;
+    margin-bottom: 28px; align-items: start;
+  }
+  .step__num {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 56px; line-height: 0.9; letter-spacing: -0.02em;
+    color: var(--fg-default);
+  }
+  .step__num em {
+    font-style: normal; color: var(--fg-subtle); font-weight: 400;
+  }
+  .step__title {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 28px; letter-spacing: -0.015em; line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .step__desc { color: var(--fg-muted); max-width: 70ch; line-height: 1.55; }
+  .step__notes {
+    margin-top: 12px;
+    display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .note {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--fg-muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .note strong { color: var(--fg-default); font-weight: 600; }
+  .note--why {
+    border-left: 3px solid var(--sq-blue);
+  }
+  .note--new {
+    border-left: 3px solid var(--sq-red);
+    color: var(--fg-default);
+  }
+
+  .frames {
+    display: flex; gap: 24px; align-items: flex-start;
+    overflow-x: auto;
+    padding: 8px 4px 24px;
+    scroll-snap-type: x mandatory;
+  }
+  .frame { scroll-snap-align: start; }
+  .frame__label {
+    font-size: 12px; color: var(--fg-muted); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .frame__label .badge {
+    background: var(--fg-default); color: var(--fg-inverse);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+    padding: 2px 8px; border-radius: var(--radius-pill); text-transform: uppercase;
+  }
+  .frame__label .badge--alt { background: var(--sq-red); color: white; }
+  .frame__label .badge--alt2 { background: var(--sq-blue); color: white; }
+
+  /* ---- iPhone frame ---- */
+  .ph {
+    width: 360px; height: 780px;
+    border-radius: 44px;
+    background: var(--bg-canvas);
+    box-shadow: var(--shadow-3), inset 0 0 0 8px #0c1116, inset 0 0 0 9px rgba(255,255,255,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+  .ph__screen {
+    position: absolute; inset: 8px;
+    border-radius: 36px;
+    overflow: hidden;
+    background: var(--bg-canvas);
+  }
+  .ph__notch {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+    width: 110px; height: 28px; border-radius: 18px; background: #000;
+    z-index: 100;
+  }
+  .ph__sb {
+    position: absolute; top: 0; left: 0; right: 0; height: 50px;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 28px 0;
+    z-index: 50;
+    font-family: var(--font-body); font-weight: 600; font-size: 14px;
+    color: var(--fg-default);
+    pointer-events: none;
+  }
+  .ph__sb .sb-right { display: flex; gap: 5px; align-items: center; }
+  .ph__sb .sb-right svg { width: 16px; height: 12px; }
+  .ph[data-onlight="true"] .ph__sb { color: white; }
+  .ph__home {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 4px; border-radius: 3px;
+    background: var(--fg-default); opacity: 0.4; z-index: 60;
+  }
+  .ph[data-onlight="true"] .ph__home { background: white; opacity: 0.7; }
+
+  /* Screen content shared */
+  .scr {
+    position: absolute; inset: 0;
+    padding: 56px 24px 32px;
+    display: flex; flex-direction: column;
+    color: var(--fg-default);
+    overflow: hidden;
+  }
+  .scr__top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 28px;
+  }
+  .scr__back {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg-surface-2);
+    display:grid; place-items:center;
+    color: var(--fg-default);
+  }
+  .scr__back svg { width: 16px; height: 16px; }
+  .scr__skip {
+    font-size: 14px; font-weight: 500; color: var(--fg-muted);
+  }
+  .scr__progress {
+    display: flex; gap: 4px; flex: 1; margin: 0 16px;
+  }
+  .scr__progress span {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: var(--border-subtle);
+    transition: background var(--duration-base) var(--ease-standard);
+  }
+  .scr__progress span.done { background: var(--fg-default); }
+  .scr__progress span.cur { background: var(--fg-default); }
+
+  .scr__step-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--fg-subtle); margin-bottom: 8px;
+  }
+  .scr__title {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 28px; letter-spacing: -0.015em; line-height: 1.15;
+    margin-bottom: 10px;
+  }
+  .scr__sub {
+    font-size: 14px; color: var(--fg-muted); line-height: 1.45;
+    margin-bottom: 24px;
+  }
+
+  .scr__cta {
+    margin-top: auto;
+    display: flex; flex-direction: column; gap: 12px;
+    padding-bottom: 24px;
+  }
+  .btn-primary {
+    height: 52px; border-radius: 14px;
+    background: var(--fg-default); color: var(--fg-inverse);
+    font-family: var(--font-display); font-weight: 700; font-size: 16px;
+    display: grid; place-items: center;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary:disabled, .btn-primary.disabled {
+    opacity: 0.4; pointer-events: none;
+  }
+  .btn-secondary {
+    height: 52px; border-radius: 14px;
+    background: transparent; color: var(--fg-default);
+    border: 1px solid var(--border-default);
+    font-family: var(--font-display); font-weight: 700; font-size: 16px;
+    display: grid; place-items: center;
+  }
+  .btn-tertiary {
+    height: 44px; background: transparent; color: var(--fg-muted);
+    font-weight: 500; font-size: 14px;
+  }
+
+  /* Backgrounds */
+  .bg-bloom {
+    position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none;
+  }
+  .bg-bloom::before, .bg-bloom::after {
+    content: ''; position: absolute; width: 280px; height: 280px;
+    border-radius: 50%; opacity: 0.5; filter: blur(30px);
+  }
+  .bg-bloom::before { background: var(--sq-red); top: -120px; right: -100px; }
+  .bg-bloom::after { background: var(--sq-blue-700, #1D4EB8); bottom: -120px; left: -100px; }
+  .bg-bloom--soft::before { opacity: 0.35; }
+  .bg-bloom--soft::after { opacity: 0.35; }
+
+  /* Welcome variants */
+  .scr-welcome {
+    padding: 0;
+    background: var(--bg-canvas);
+  }
+  .scr-welcome__hero {
+    position: relative;
+    height: 56%;
+    overflow: hidden;
+  }
+  .scr-welcome__photo {
+    position:absolute; inset: 0;
+    background: linear-gradient(135deg, #0c0a14 0%, #1f1145 60%, #491454 100%);
+  }
+  .scr-welcome__photo::before, .scr-welcome__photo::after {
+    content:''; position: absolute; border-radius: 50%; filter: blur(40px);
+  }
+  .scr-welcome__photo::before {
+    width: 220px; height: 220px; background: var(--sq-red); opacity: 0.6;
+    top: 80px; left: -60px;
+  }
+  .scr-welcome__photo::after {
+    width: 260px; height: 260px; background: var(--sq-blue); opacity: 0.5;
+    bottom: -40px; right: -60px;
+  }
+  .scr-welcome__skip {
+    position: absolute; top: 56px; right: 28px; z-index: 10;
+    color: rgba(255,255,255,0.85); font-size: 14px; font-weight: 500;
+  }
+  .scr-welcome__mark {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 100px; height: 100px;
+    z-index: 5;
+  }
+  .scr-welcome__panel {
+    position: absolute; bottom: 0; left:0; right: 0; height: 52%;
+    background: var(--bg-canvas);
+    border-radius: 32px 32px 0 0;
+    padding: 36px 28px 28px;
+    display: flex; flex-direction: column;
+  }
+  .scr-welcome__title {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: 30px; letter-spacing: -0.02em; line-height: 1.08;
+    margin-bottom: 14px;
+  }
+  .scr-welcome__title em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--sq-red), var(--sq-blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .scr-welcome__body {
+    font-size: 15px; line-height: 1.5; color: var(--fg-muted);
+    margin-bottom: 24px;
+  }
+  .scr-welcome__bullets { display:flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .scr-welcome__bullets li {
+    list-style: none; font-size: 13px; color: var(--fg-default);
+    display:flex; align-items:center; gap: 10px;
+    font-weight: 500;
+  }
+  .scr-welcome__bullets li::before {
+    content:''; width: 18px; height: 18px;
+    background: var(--bg-surface-2); border-radius: 50%; flex-shrink:0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23080F13' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+    background-size: 12px; background-repeat: no-repeat; background-position: center;
+  }
+
+  /* Conference card */
+  .conf-card {
+    border: 1px solid var(--border-default);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex; gap: 14px; align-items: center;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+  }
+  .conf-card.active {
+    border-color: var(--fg-default); border-width: 2px; padding: 15px;
+    background: var(--bg-surface);
+  }
+  .conf-card__img {
+    width: 56px; height: 56px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--sq-red), var(--sq-blue));
+    flex-shrink: 0;
+    position: relative; overflow: hidden;
+  }
+  .conf-card__img::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), transparent 60%);
+  }
+  .conf-card__body { flex: 1; min-width: 0; }
+  .conf-card__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .conf-card__meta { font-size: 12px; color: var(--fg-muted); display: flex; gap: 8px; align-items: center; }
+  .conf-card__radio {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--border-default);
+    flex-shrink: 0; position: relative;
+  }
+  .conf-card.active .conf-card__radio {
+    border-color: var(--fg-default); background: var(--fg-default);
+  }
+  .conf-card.active .conf-card__radio::after {
+    content:''; position: absolute; inset: 5px; border-radius: 50%;
+    background: var(--bg-canvas);
+  }
+
+  /* Option (segmented choice cards) */
+  .opt {
+    border: 1px solid var(--border-default);
+    border-radius: 16px;
+    padding: 18px 16px;
+    display: flex; gap: 14px; align-items: flex-start;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+  }
+  .opt.active {
+    border-color: var(--fg-default); border-width: 2px; padding: 17px 15px;
+    background: var(--bg-surface);
+  }
+  .opt__icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--bg-surface-2);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .opt.active .opt__icon { background: var(--fg-default); color: var(--fg-inverse); }
+  .opt__icon svg { width: 20px; height: 20px; }
+  .opt__body { flex: 1; }
+  .opt__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .opt__desc { font-size: 12px; color: var(--fg-muted); line-height: 1.4; }
+
+  /* Days strip */
+  .days-row {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+    margin-bottom: 8px;
+  }
+  .day {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    border: 1px solid var(--border-default);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+  }
+  .day__dow { font-size: 9px; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .day__num { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+  .day.active {
+    background: var(--fg-default); color: var(--fg-inverse); border-color: var(--fg-default);
+  }
+  .day.active .day__dow { color: rgba(255,255,255,0.7); }
+  .day.disabled { opacity: 0.3; pointer-events: none; }
+
+  /* Chip grid */
+  .chip-grid {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 16px;
+  }
+  .chip {
+    padding: 10px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-default);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: all var(--duration-fast) var(--ease-standard);
+  }
+  .chip svg { width: 14px; height: 14px; }
+  .chip.active {
+    background: var(--fg-default); color: var(--fg-inverse); border-color: var(--fg-default);
+  }
+  .chip--rich {
+    flex-direction: column; align-items: center;
+    padding: 16px 12px;
+    aspect-ratio: 1;
+    border-radius: 16px;
+    text-align: center;
+    gap: 8px;
+    flex: 1 1 calc(33% - 8px); min-width: 0;
+  }
+  .chip--rich svg { width: 22px; height: 22px; color: var(--fg-default); }
+  .chip--rich.active svg { color: var(--fg-inverse); }
+  .chip__emoji {
+    width: 32px; height: 32px;
+    background: var(--bg-surface-2);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 16px;
+  }
+  .chip--rich.active .chip__emoji { background: rgba(255,255,255,0.15); }
+
+  /* Slider */
+  .slider-block { margin-bottom: 18px; }
+  .slider-block__label {
+    display: flex; justify-content: space-between; margin-bottom: 10px;
+    font-size: 12px; color: var(--fg-muted); font-weight: 500;
+  }
+  .slider-block__label strong { color: var(--fg-default); font-weight: 600; }
+  .slider-track {
+    height: 8px; background: var(--bg-surface-2); border-radius: 4px;
+    position: relative;
+  }
+  .slider-fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--sq-red), var(--sq-blue));
+    border-radius: 4px;
+  }
+  .slider-thumb {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--bg-canvas); border: 2px solid var(--fg-default);
+    box-shadow: var(--shadow-2);
+  }
+  .slider-block__caps {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--fg-subtle);
+    margin-top: 8px;
+  }
+
+  /* Schedule cards */
+  .pace-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .pace-card {
+    border: 1px solid var(--border-default); border-radius: 16px;
+    padding: 16px; cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+  }
+  .pace-card.active { border-color: var(--fg-default); border-width: 2px; padding: 15px; background: var(--bg-surface); }
+  .pace-card__icon { width: 36px; height: 36px; border-radius: 10px;
+    background: var(--bg-surface-2); display:grid; place-items:center; margin-bottom: 10px; }
+  .pace-card.active .pace-card__icon { background: var(--fg-default); color: var(--fg-inverse); }
+  .pace-card__icon svg { width: 18px; height: 18px; }
+  .pace-card__title { font-family: var(--font-display); font-weight: 700; font-size: 14px; margin-bottom: 3px; }
+  .pace-card__desc { font-size: 11px; color: var(--fg-muted); line-height: 1.4; }
+
+  /* Must-haves */
+  .search {
+    border: 1px solid var(--border-default); border-radius: 14px;
+    padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .search svg { width: 18px; height: 18px; color: var(--fg-muted); }
+  .search input {
+    flex: 1; border: none; background: transparent; font-family: var(--font-body);
+    font-size: 14px; color: var(--fg-default); outline: none;
+  }
+  .pill-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .pill {
+    background: var(--bg-surface); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    padding: 6px 10px 6px 6px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 500;
+  }
+  .pill .av { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--sq-red), var(--sq-blue)); flex-shrink:0; }
+  .pill .x { color: var(--fg-subtle); cursor:pointer; padding: 0 2px; }
+
+  .suggest-list { display: flex; flex-direction: column; gap: 4px; }
+  .suggest {
+    display:flex; align-items:center; gap: 12px;
+    padding: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .suggest:hover { background: var(--bg-surface); }
+  .suggest__av {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--sq-red), var(--sq-blue));
+    flex-shrink: 0;
+    display:grid; place-items: center;
+    color: white; font-weight: 700; font-size: 13px; font-family: var(--font-display);
+  }
+  .suggest__body { flex: 1; min-width: 0; }
+  .suggest__name { font-weight: 600; font-size: 13px; }
+  .suggest__role { font-size: 11px; color: var(--fg-muted); }
+  .suggest__add {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--bg-surface-2);
+    display: grid; place-items: center;
+    color: var(--fg-default);
+  }
+  .suggest__add svg { width: 14px; height: 14px; }
+  .seg-tabs {
+    display: flex; background: var(--bg-surface-2);
+    border-radius: 10px; padding: 3px; margin-bottom: 12px;
+    font-size: 12px; font-weight: 600;
+  }
+  .seg-tabs button {
+    flex: 1; padding: 8px;
+    border-radius: 8px;
+    color: var(--fg-muted);
+  }
+  .seg-tabs button[aria-pressed="true"] {
+    background: var(--bg-canvas); color: var(--fg-default);
+    box-shadow: var(--shadow-1);
+  }
+
+  /* Review */
+  .review-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .review-row {
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-surface);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .review-row__icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--bg-canvas); border: 1px solid var(--border-subtle);
+    display:grid; place-items:center; flex-shrink: 0;
+  }
+  .review-row__icon svg { width: 16px; height: 16px; }
+  .review-row__body { flex: 1; min-width: 0; }
+  .review-row__label { font-size: 11px; color: var(--fg-muted); margin-bottom: 2px; font-weight: 500; }
+  .review-row__val { font-size: 13px; font-weight: 600; line-height: 1.4; }
+  .review-row__edit { color: var(--fg-action); font-size: 12px; font-weight: 600; }
+
+  /* Loading variants */
+  .scr-load {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; padding: 0 24px;
+    text-align: center;
+  }
+  .scr-load__mark {
+    width: 96px; height: 96px;
+    margin-bottom: 32px;
+    animation: spin 4s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .scr-load__title { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; margin-bottom: 10px; }
+  .scr-load__sub { font-size: 14px; color: var(--fg-muted); max-width: 28ch; line-height: 1.5; }
+  .scr-load__steps {
+    margin-top: 32px; display: flex; flex-direction: column; gap: 8px;
+    width: 100%; max-width: 260px;
+    text-align: left;
+  }
+  .scr-load__step {
+    display:flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--fg-muted);
+  }
+  .scr-load__step.done { color: var(--fg-default); font-weight: 500; }
+  .scr-load__step .dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--border-default);
+    flex-shrink: 0; position: relative;
+  }
+  .scr-load__step.done .dot {
+    background: var(--fg-default); border-color: var(--fg-default);
+  }
+  .scr-load__step.done .dot::after {
+    content:''; position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+    background-size: 70%; background-repeat: no-repeat; background-position: center;
+  }
+  .scr-load__step.cur .dot {
+    border-color: var(--fg-default);
+  }
+  .scr-load__step.cur .dot::after {
+    content:''; position: absolute; inset: 2px; border-radius: 50%;
+    background: var(--fg-default);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* Done state */
+  .scr-done__title em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--sq-red), var(--sq-blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  .legend {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    margin-bottom: 32px;
+    padding: 16px 20px;
+    background: var(--bg-surface);
+    border-radius: 12px;
+    font-size: 12px;
+  }
+  .legend__item { display: flex; align-items: center; gap: 8px; color: var(--fg-muted); }
+  .legend__sw { width: 12px; height: 12px; border-radius: 3px; }
+  .legend__sw--new { background: var(--sq-red); }
+  .legend__sw--why { background: var(--sq-blue); }
+  .legend__sw--var { background: var(--fg-default); }
+</style>
+</head>
+<body>
+
+<header class="doc-header">
+  <div class="doc-header__inner">
+    <a class="doc-header__brand" href="index.html">
+      <img src="assets/sq-mark.svg" alt=""/>
+      SideQuest
+    </a>
+    <nav class="doc-nav">
+      <a href="index.html">Overview</a>
+      <a href="ds.html">Design System</a>
+      <a href="onboarding.html" aria-current="page">Onboarding</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="canvas">
+  <section class="page-hero">
+    <div class="eyebrow">Onboarding · v2</div>
+    <h1 class="page-title">A 10-step welcome that earns the right to curate.</h1>
+    <p class="page-sub">A pivoted onboarding flow built around the new product: an event-curation app driven by interests, goals, and social style. Every step is short, every step explains why we ask. Variations explore visual treatment, density, and pacing.</p>
+
+    <div class="legend">
+      <div class="legend__item"><span class="legend__sw legend__sw--new"></span><strong>New step</strong></div>
+      <div class="legend__item"><span class="legend__sw legend__sw--why"></span>Why we ask</div>
+      <div class="legend__item"><span class="legend__sw legend__sw--var"></span>Multiple variants shown</div>
+    </div>
+  </section>
+
+  <!-- ============== STEP 1: WELCOME ============== -->
+  <section class="step">
+    <div class="step__head">
+      <div class="step__num">01<em>/10</em></div>
+      <div>
+        <h2 class="step__title">Welcome — sell the value, not the wizard</h2>
+        <p class="step__desc">The original "conference helper wizard" copy was dry. Lead with the outcome: a personalized schedule. Three quick variants — gradient panel, full-bleed photo with floating mark, minimal type-led.</p>
+        <div class="step__notes">
+          <div class="note note--why"><strong>Goal:</strong> conversion to next step ≥ 90%</div>
+          <div class="note">~12 sec read time</div>
+        </div>
+      </div>
+    </div>
+    <div class="frames">
+
+      <!-- Variant A: Gradient bloom -->
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A</span> Gradient bloom · primary</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen scr-welcome" data-onlight="true">
+            <div class="scr-welcome__hero">
+              <div class="scr-welcome__photo"></div>
+              <a class="scr-welcome__skip">Skip</a>
+              <img class="scr-welcome__mark" src="assets/sq-mark.svg" alt=""/>
+            </div>
+            <div class="scr-welcome__panel">
+              <h2 class="scr-welcome__title">Your <em>perfect</em> conference, planned in 90 seconds.</h2>
+              <p class="scr-welcome__body">Tell us a little about you. We'll build a schedule of talks, side-events and people worth meeting — tuned to how you work the room.</p>
+              <ul class="scr-welcome__bullets">
+                <li>Talks matched to your goals</li>
+                <li>Side-events for your style</li>
+                <li>People worth meeting</li>
+              </ul>
+              <button class="btn-primary" style="margin-top: auto;">Get started</button>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+      <!-- Variant B: Card stack preview -->
+      <div class="frame">
+        <div class="frame__label"><span class="badge badge--alt">B</span> Schedule preview</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <span></span>
+                <a class="scr__skip">Skip</a>
+              </div>
+              <div style="display:flex; justify-content: center; padding: 14px 0 28px; position: relative;">
+                <div style="position:relative; width: 240px; height: 220px;">
+                  <div style="position:absolute; left: 0; top: 0; width: 200px; transform: rotate(-7deg); background: var(--bg-surface); border-radius: 14px; padding: 14px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-2);">
+                    <div style="font-size: 10px; color: var(--fg-muted); margin-bottom: 4px;">9:00 AM · MAIN STAGE</div>
+                    <div style="font-family: var(--font-display); font-weight: 700; font-size: 14px; line-height: 1.2;">Future of On-chain Yield</div>
+                    <div style="margin-top: 8px; display: flex; gap: 4px;">
+                      <span style="background: var(--sq-red); color: white; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 99px;">DeFi</span>
+                      <span style="background: var(--bg-surface-2); font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 99px; color: var(--fg-muted);">Goal match</span>
+                    </div>
+                  </div>
+                  <div style="position:absolute; right: 0; top: 30px; width: 200px; transform: rotate(6deg); background: var(--bg-canvas); border-radius: 14px; padding: 14px; border: 1px solid var(--border-default); box-shadow: var(--shadow-3);">
+                    <div style="font-size: 10px; color: var(--fg-muted); margin-bottom: 4px;">12:30 PM · ROOFTOP</div>
+                    <div style="font-family: var(--font-display); font-weight: 700; font-size: 14px; line-height: 1.2;">Founder lunch · Stables</div>
+                    <div style="margin-top: 8px; display:flex; align-items: center; gap: 4px;">
+                      <span style="display:flex; gap: -4px;"><span style="width: 16px; height: 16px; border-radius:50%; background: linear-gradient(135deg, var(--sq-red), var(--sq-blue)); display: inline-block;"></span></span>
+                      <span style="font-size: 10px; color: var(--fg-muted);">+12 in your goals</span>
+                    </div>
+                  </div>
+                  <div style="position: absolute; left: 30px; bottom: 0; width: 180px; transform: rotate(-3deg); background: var(--bg-surface); border-radius: 14px; padding: 12px; border: 1px solid var(--border-subtle); opacity: 0.55;">
+                    <div style="font-size: 10px; color: var(--fg-muted);">7:00 PM · TBD</div>
+                    <div style="font-family: var(--font-display); font-weight: 700; font-size: 13px;">Side event</div>
+                  </div>
+                </div>
+              </div>
+              <h2 class="scr__title" style="text-align: center; font-size: 26px; max-width: 280px; margin: 0 auto 10px;">Schedules <span style="background: linear-gradient(135deg, var(--sq-red), var(--sq-blue)); -webkit-background-clip: text; background-clip: text; color: transparent;">curated</span> for you.</h2>
+              <p class="scr__sub" style="text-align: center;">90 seconds of questions. Days of saved scrolling.</p>
+              <div class="scr__cta">
+                <button class="btn-primary">Start</button>
+                <button class="btn-tertiary">I have an account</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+      <!-- Variant C: Type-led minimal -->
+      <div class="frame">
+        <div class="frame__label"><span class="badge badge--alt2">C</span> Type-led minimal</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr" style="padding-top: 80px;">
+              <div style="margin-top: 80px; margin-bottom: auto;">
+                <img src="assets/sq-mark.svg" style="width: 48px; height: 48px; margin-bottom: 36px;" alt=""/>
+                <h2 style="font-family: var(--font-display); font-weight: 700; font-size: 44px; line-height: 0.98; letter-spacing: -0.025em; margin-bottom: 18px;">
+                  A schedule.<br/>
+                  <span style="color: var(--sq-red);">Not</span> a list of<br/>
+                  events.
+                </h2>
+                <p style="color: var(--fg-muted); font-size: 15px; line-height: 1.5; max-width: 28ch;">
+                  Built around your goals, your topics, and how you like to network.
+                </p>
+              </div>
+              <div class="scr__cta">
+                <button class="btn-primary">Begin</button>
+                <button class="btn-tertiary">I have an account</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============== STEP 2: CONFERENCE + ATTENDANCE ============== -->
+  <section class="step">
+    <div class="step__head">
+      <div class="step__num">02<em>/10</em></div>
+      <div>
+        <h2 class="step__title">Pick your conference</h2>
+        <p class="step__desc">Combined "which conference + full/partial attendance" into one richer step. Original treated attendance as floating Yes/No buttons with no context — now it's structured cards with conference imagery.</p>
+        <div class="step__notes">
+          <div class="note">Single conference auto-selected if only one is detected</div>
+        </div>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A</span> Conference picker</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="cur"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <a class="scr__skip" style="visibility:hidden;">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 2 of 10</div>
+              <h2 class="scr__title">Which conference?</h2>
+              <p class="scr__sub">We'll plan around the dates and venue.</p>
+              <div class="conf-card active">
+                <div class="conf-card__img"></div>
+                <div class="conf-card__body">
+                  <div class="conf-card__title">TOKEN2049 Dubai</div>
+                  <div class="conf-card__meta">29 Apr – 30 Apr · Madinat Jumeirah</div>
+                </div>
+                <div class="conf-card__radio"></div>
+              </div>
+              <div class="conf-card">
+                <div class="conf-card__img" style="background: linear-gradient(135deg, #6088F7, #1E4EB0);"></div>
+                <div class="conf-card__body">
+                  <div class="conf-card__title">ETHGlobal Bangkok</div>
+                  <div class="conf-card__meta">15 May – 18 May · QSNCC</div>
+                </div>
+                <div class="conf-card__radio"></div>
+              </div>
+              <div class="conf-card">
+                <div class="conf-card__img" style="background: linear-gradient(135deg, #FF8C9E, #C61E4A);"></div>
+                <div class="conf-card__body">
+                  <div class="conf-card__title">Consensus Toronto</div>
+                  <div class="conf-card__meta">10 Jun – 13 Jun · MTCC</div>
+                </div>
+                <div class="conf-card__radio"></div>
+              </div>
+              <button class="btn-tertiary" style="margin-top: 4px;">+ Search for another conference</button>
+              <div class="scr__cta">
+                <button class="btn-primary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A·2</span> Attendance type</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="cur"></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <a class="scr__skip" style="visibility:hidden;">Skip</a>
+              </div>
+              <div class="scr__step-label">TOKEN2049 Dubai · Step 3 of 10</div>
+              <h2 class="scr__title">How are you attending?</h2>
+              <p class="scr__sub">Lets us tune the schedule to your time on the ground.</p>
+              <div class="opt active">
+                <div class="opt__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                </div>
+                <div class="opt__body">
+                  <div class="opt__title">Full attendance</div>
+                  <div class="opt__desc">All 4 days — main stage and side events</div>
+                </div>
+              </div>
+              <div class="opt">
+                <div class="opt__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h5M16 10h5"/></svg>
+                </div>
+                <div class="opt__body">
+                  <div class="opt__title">Partial — only some days</div>
+                  <div class="opt__desc">You'll pick which days next</div>
+                </div>
+              </div>
+              <div class="opt">
+                <div class="opt__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 14.14 14.14"/></svg>
+                </div>
+                <div class="opt__body">
+                  <div class="opt__title">Side events only</div>
+                  <div class="opt__desc">No main conference pass — focus on networking</div>
+                </div>
+              </div>
+              <div class="scr__cta">
+                <button class="btn-primary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== STEP 3: DAYS ============== -->
+  <section class="step">
+    <div class="step__head">
+      <div class="step__num">03<em>/10</em></div>
+      <div>
+        <h2 class="step__title">Days of attendance</h2>
+        <p class="step__desc">Original screen had a vertical stack of buttons — slow and didn't show the actual conference dates. Replaced with a calendar strip showing only the conference's days.</p>
+        <div class="step__notes">
+          <div class="note note--why"><strong>Why:</strong> Visual context (date numbers + days of week) reduces selection errors</div>
+          <div class="note">Skipped if "Full attendance" was chosen</div>
+        </div>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A</span> Calendar strip</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="cur"></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <a class="scr__skip" style="visibility:hidden;">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 4 of 10</div>
+              <h2 class="scr__title">Which days are you in?</h2>
+              <p class="scr__sub">Tap to select. We'll only suggest events on these days.</p>
+
+              <div style="font-size: 11px; font-weight: 600; color: var(--fg-muted); margin-bottom: 8px; letter-spacing: 0.05em;">APRIL 2026</div>
+              <div class="days-row">
+                <div class="day disabled"><span class="day__dow">Sun</span><span class="day__num">26</span></div>
+                <div class="day disabled"><span class="day__dow">Mon</span><span class="day__num">27</span></div>
+                <div class="day disabled"><span class="day__dow">Tue</span><span class="day__num">28</span></div>
+                <div class="day active"><span class="day__dow">Wed</span><span class="day__num">29</span></div>
+                <div class="day active"><span class="day__dow">Thu</span><span class="day__num">30</span></div>
+                <div class="day"><span class="day__dow">Fri</span><span class="day__num">01</span></div>
+                <div class="day"><span class="day__dow">Sat</span><span class="day__num">02</span></div>
+              </div>
+              <div style="font-size: 12px; color: var(--fg-muted); margin-top: 4px; padding: 12px 14px; background: var(--bg-surface); border-radius: 10px; display:flex; gap: 8px; align-items: center;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--fg-action);"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <span>You'll be in town for <strong style="color: var(--fg-default);">2 days</strong> · Wed & Thu</span>
+              </div>
+
+              <div class="scr__cta">
+                <button class="btn-primary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== STEP 4: ROLE ============== -->
+  <section class="step">
+    <div class="step__head">
+      <div class="step__num">04<em>/10</em></div>
+      <div>
+        <h2 class="step__title">Who are you? <span class="tag" style="background: var(--sq-red); color:white; vertical-align: middle;">NEW</span></h2>
+        <p class="step__desc">Drives matching weights. A founder fundraising sees a different schedule than a journalist covering the event. Single-select rich choice cards with icons.</p>
+        <div class="step__notes">
+          <div class="note note--why"><strong>Why:</strong> Largest signal for personalization — alone reduces curation noise by ~60%</div>
+        </div>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A</span> 6-card grid</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="cur"></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <a class="scr__skip" style="visibility:hidden;">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 5 of 10</div>
+              <h2 class="scr__title">Which best describes you?</h2>
+              <p class="scr__sub">Pick one. You can always change it later in your profile.</p>
+
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div class="opt active" style="flex-direction: column; align-items: flex-start; padding: 14px; gap: 8px;">
+                  <div class="opt__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 10.821-7.487"/><circle cx="10" cy="8" r="5"/><path d="M19.5 14.3 18 16.8l-2.5 1.5L18 19.7l1.5 2.5 1.5-2.5L23.5 18l-2.5-1.5z"/></svg></div>
+                  <div>
+                    <div class="opt__title">Founder</div>
+                    <div class="opt__desc">Building, raising, hiring</div>
+                  </div>
+                </div>
+                <div class="opt" style="flex-direction: column; align-items: flex-start; padding: 15px; gap: 8px;">
+                  <div class="opt__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+                  <div>
+                    <div class="opt__title">Investor</div>
+                    <div class="opt__desc">Sourcing deals</div>
+                  </div>
+                </div>
+                <div class="opt" style="flex-direction: column; align-items: flex-start; padding: 15px; gap: 8px;">
+                  <div class="opt__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4M6 8l-4 4 4 4M14.5 4l-5 16"/></svg></div>
+                  <div>
+                    <div class="opt__title">Developer</div>
+                    <div class="opt__desc">Building, learning</div>
+                  </div>
+                </div>
+                <div class="opt" style="flex-direction: column; align-items: flex-start; padding: 15px; gap: 8px;">
+                  <div class="opt__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></div>
+                  <div>
+                    <div class="opt__title">Marketer</div>
+                    <div class="opt__desc">Growth, BD, partners</div>
+                  </div>
+                </div>
+                <div class="opt" style="flex-direction: column; align-items: flex-start; padding: 15px; gap: 8px;">
+                  <div class="opt__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2M10 6h4M10 10h4M10 14h4M10 18h4"/></svg></div>
+                  <div>
+                    <div class="opt__title">Corporate</div>
+                    <div class="opt__desc">Enterprise, strategy</div>
+                  </div>
+                </div>
+                <div class="opt" style="flex-direction: column; align-items: flex-start; padding: 15px; gap: 8px;">
+                  <div class="opt__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4a2 2 0 0 1 2-2h11l5 5v15a2 2 0 0 1-2 2Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M8 11h6M8 15h8M8 19h6"/></svg></div>
+                  <div>
+                    <div class="opt__title">Journalist</div>
+                    <div class="opt__desc">Covering, writing</div>
+                  </div>
+                </div>
+              </div>
+              <div class="scr__cta">
+                <button class="btn-primary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="frame__label"><span class="badge badge--alt">B</span> Single-column emoji</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="cur"></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <a class="scr__skip" style="visibility:hidden;">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 5 of 10</div>
+              <h2 class="scr__title">I'm a…</h2>
+              <p class="scr__sub">Pick one — tap again to deselect.</p>
+
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div class="opt active" style="padding: 12px 14px;">
+                  <div class="chip__emoji">🚀</div>
+                  <div class="opt__body" style="display:flex; align-items: center;">
+                    <div>
+                      <div class="opt__title">Founder</div>
+                      <div class="opt__desc">Building a company</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="opt" style="padding: 13px 15px;">
+                  <div class="chip__emoji">💸</div>
+                  <div class="opt__body"><div class="opt__title">Investor</div><div class="opt__desc">VC, angel, syndicate</div></div>
+                </div>
+                <div class="opt" style="padding: 13px 15px;">
+                  <div class="chip__emoji">⌨️</div>
+                  <div class="opt__body"><div class="opt__title">Developer</div><div class="opt__desc">Engineer, researcher</div></div>
+                </div>
+                <div class="opt" style="padding: 13px 15px;">
+                  <div class="chip__emoji">📈</div>
+                  <div class="opt__body"><div class="opt__title">Marketer / BD</div><div class="opt__desc">Growth, partnerships</div></div>
+                </div>
+                <div class="opt" style="padding: 13px 15px;">
+                  <div class="chip__emoji">🏢</div>
+                  <div class="opt__body"><div class="opt__title">Corporate</div><div class="opt__desc">Enterprise team</div></div>
+                </div>
+                <div class="opt" style="padding: 13px 15px;">
+                  <div class="chip__emoji">📰</div>
+                  <div class="opt__body"><div class="opt__title">Journalist</div><div class="opt__desc">Press, media</div></div>
+                </div>
+              </div>
+              <div class="scr__cta">
+                <button class="btn-primary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============== STEP 5: GOALS ============== -->
+  <section class="step">
+    <div class="step__head">
+      <div class="step__num">05<em>/10</em></div>
+      <div>
+        <h2 class="step__title">Goals <span class="tag" style="background: var(--sq-red); color:white; vertical-align: middle;">NEW</span></h2>
+        <p class="step__desc">Multi-select up to 3. Limit forces prioritization, which makes for sharper curation. Question copy adapts to the role chosen previously ("As a Founder, what are you here to do?").</p>
+        <div class="step__notes">
+          <div class="note">Pre-orders by likelihood given role</div>
+          <div class="note note--why"><strong>Why max 3:</strong> Beyond 3, weights dilute</div>
+        </div>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A</span> Tappable chip cards</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="cur"></span><span></span><span></span><span></span><span></span>
+                </div>
+                <a class="scr__skip" style="visibility:hidden;">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 6 of 10</div>
+              <h2 class="scr__title">As a Founder, what are you here to do?</h2>
+              <p class="scr__sub">Pick up to 3 — order matters, top one weighs most.</p>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+                <div class="opt active" style="flex-direction: column; align-items: flex-start; padding: 14px; gap: 6px; position: relative;">
+                  <div style="position:absolute; top: 10px; right: 10px; width: 22px; height: 22px; border-radius: 50%; background: var(--sq-red); color: white; display: grid; place-items: center; font-weight: 700; font-size: 11px; font-family: var(--font-display);">1</div>
+                  <div class="opt__icon">💸</div>
+                  <div class="opt__title">Fundraising</div>
+                  <div class="opt__desc">Meet investors</div>
+                </div>
+                <div class="opt active" style="flex-direction: column; align-items: flex-start; padding: 14px; gap: 6px; position: relative;">
+                  <div style="position:absolute; top: 10px; right: 10px; width: 22px; height: 22px; border-radius: 50%; background: var(--sq-red); color: white; display: grid; place-items: center; font-weight: 700; font-size: 11px; font-family: var(--font-display);">2</div>
+                  <div class="opt__icon">🤝</div>
+                  <div class="opt__title">Partnerships</div>
+                  <div class="opt__desc">Build relationships</div>
+                </div>
+                <div class="opt" style="flex-direction: column; align-items: flex-start; padding: 15px; gap: 6px;">
+                  <div class="opt__icon">👋</div>
+                  <div class="opt__title">Networking</div>
+                  <div class="opt__desc">Meet new people</div>
+                </div>
+                <div class="opt" style="flex-direction: column; align-items: flex-start; padding: 15px; gap: 6px;">
+                  <div class="opt__icon">🎯</div>
+                  <div class="opt__title">Hiring</div>
+                  <div class="opt__desc">Find talent</div>
+                </div>
+                <div class="opt" style="flex-direction: column; align-items: flex-start; padding: 15px; gap: 6px;">
+                  <div class="opt__icon">📚</div>
+                  <div class="opt__title">Learning</div>
+                  <div class="opt__desc">New tech, trends</div>
+                </div>
+                <div class="opt" style="flex-direction: column; align-items: flex-start; padding: 15px; gap: 6px;">
+                  <div class="opt__icon">💼</div>
+                  <div class="opt__title">Closing deals</div>
+                  <div class="opt__desc">Sales, contracts</div>
+                </div>
+              </div>
+              <div style="font-size: 12px; color: var(--fg-muted); text-align: center;">2 of 3 selected</div>
+              <div class="scr__cta">
+                <button class="btn-primary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== STEP 6: TOPICS ============== -->
+  <section class="step">
+    <div class="step__head">
+      <div class="step__num">06<em>/10</em></div>
+      <div>
+        <h2 class="step__title">Topics</h2>
+        <p class="step__desc">Replaced the original tiny pill grid with two treatments — pill-grid (more options visible, scannable) and rich-card (icon + label, more visual). Multi-select, no hard cap.</p>
+        <div class="step__notes">
+          <div class="note">Live counter: "12 topics selected"</div>
+        </div>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A</span> Pill grid</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="cur"></span><span></span><span></span><span></span>
+                </div>
+                <a class="scr__skip">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 7 of 10</div>
+              <h2 class="scr__title">What topics interest you?</h2>
+              <p class="scr__sub">Tap any number. We'll surface talks and people across these.</p>
+
+              <div class="chip-grid">
+                <span class="chip active">AI / ML</span>
+                <span class="chip active">DeFi</span>
+                <span class="chip">Stablecoins</span>
+                <span class="chip">L2s & Rollups</span>
+                <span class="chip active">Infra</span>
+                <span class="chip">Privacy / ZK</span>
+                <span class="chip">Trading</span>
+                <span class="chip active">SaaS</span>
+                <span class="chip">Climate</span>
+                <span class="chip">Consumer</span>
+                <span class="chip">RWA</span>
+                <span class="chip">Gaming</span>
+                <span class="chip">Mobile</span>
+                <span class="chip">Hardware</span>
+                <span class="chip">Bio / Health</span>
+                <span class="chip">Security</span>
+                <span class="chip">DePIN</span>
+                <span class="chip">Open-source</span>
+              </div>
+              <div style="font-size: 12px; color: var(--fg-muted);">4 selected</div>
+              <div class="scr__cta">
+                <button class="btn-primary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="frame__label"><span class="badge badge--alt">B</span> Rich cards</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="cur"></span><span></span><span></span><span></span>
+                </div>
+                <a class="scr__skip">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 7 of 10</div>
+              <h2 class="scr__title">Pick what you're into</h2>
+              <p class="scr__sub">As many as you like.</p>
+
+              <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px;">
+                <div class="chip chip--rich active"><div class="chip__emoji">🤖</div><span>AI</span></div>
+                <div class="chip chip--rich active"><div class="chip__emoji">💱</div><span>DeFi</span></div>
+                <div class="chip chip--rich"><div class="chip__emoji">💵</div><span>Stables</span></div>
+                <div class="chip chip--rich active"><div class="chip__emoji">🏗️</div><span>Infra</span></div>
+                <div class="chip chip--rich"><div class="chip__emoji">🔐</div><span>Privacy</span></div>
+                <div class="chip chip--rich"><div class="chip__emoji">📊</div><span>Trading</span></div>
+                <div class="chip chip--rich"><div class="chip__emoji">⚡</div><span>L2s</span></div>
+                <div class="chip chip--rich active"><div class="chip__emoji">🧮</div><span>SaaS</span></div>
+                <div class="chip chip--rich"><div class="chip__emoji">🌎</div><span>Climate</span></div>
+                <div class="chip chip--rich"><div class="chip__emoji">🛒</div><span>Consumer</span></div>
+                <div class="chip chip--rich"><div class="chip__emoji">🎮</div><span>Gaming</span></div>
+                <div class="chip chip--rich"><div class="chip__emoji">🧠</div><span>Bio</span></div>
+              </div>
+              <div class="scr__cta">
+                <button class="btn-primary">Continue (4)</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== STEP 7: SCHEDULE STYLE ============== -->
+  <section class="step">
+    <div class="step__head">
+      <div class="step__num">07<em>/10</em></div>
+      <div>
+        <h2 class="step__title">Schedule style <span class="tag" style="background: var(--sq-red); color:white; vertical-align: middle;">NEW</span></h2>
+        <p class="step__desc">Two dimensions — pace (packed vs. relaxed) and chronotype (morning vs. night). Slider feels light; pace cards feel definitive. Showing both treatments.</p>
+        <div class="step__notes">
+          <div class="note note--why"><strong>Why both:</strong> A "packed morning person" gets very different curation than a "relaxed night owl"</div>
+        </div>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A</span> Twin sliders</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="cur"></span><span></span><span></span>
+                </div>
+                <a class="scr__skip">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 8 of 10</div>
+              <h2 class="scr__title">How do you like to do conferences?</h2>
+              <p class="scr__sub">Tune the pace. We'll match.</p>
+
+              <div class="slider-block">
+                <div class="slider-block__label"><span>Pace</span><strong>Packed</strong></div>
+                <div class="slider-track">
+                  <div class="slider-fill" style="width: 78%;"></div>
+                  <div class="slider-thumb" style="left: 78%;"></div>
+                </div>
+                <div class="slider-block__caps"><span>Relaxed (3-4 events / day)</span><span>Packed (8+)</span></div>
+              </div>
+
+              <div class="slider-block">
+                <div class="slider-block__label"><span>Energy</span><strong>Early bird</strong></div>
+                <div class="slider-track">
+                  <div class="slider-fill" style="width: 28%;"></div>
+                  <div class="slider-thumb" style="left: 28%;"></div>
+                </div>
+                <div class="slider-block__caps"><span>🌅 Mornings</span><span>Late nights 🌙</span></div>
+              </div>
+
+              <div style="margin-top: 24px; padding: 14px; border-radius: 12px; background: var(--bg-surface); border: 1px solid var(--border-subtle); font-size: 13px; line-height: 1.5;">
+                <span style="color: var(--fg-muted);">We'll plan you</span> <strong>~7 events per day</strong>, <span style="color: var(--fg-muted);">starting around</span> <strong>8:00 AM</strong>.
+              </div>
+
+              <div class="scr__cta">
+                <button class="btn-primary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="frame__label"><span class="badge badge--alt">B</span> Cards</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="cur"></span><span></span><span></span>
+                </div>
+                <a class="scr__skip">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 8 of 10</div>
+              <h2 class="scr__title">What's your pace?</h2>
+              <p class="scr__sub">Pick the closest fit.</p>
+
+              <div class="pace-grid">
+                <div class="pace-card active">
+                  <div class="pace-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+                  <div class="pace-card__title">Packed</div>
+                  <div class="pace-card__desc">8+ events/day, no gaps</div>
+                </div>
+                <div class="pace-card">
+                  <div class="pace-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                  <div class="pace-card__title">Balanced</div>
+                  <div class="pace-card__desc">5–7 events/day</div>
+                </div>
+                <div class="pace-card">
+                  <div class="pace-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></div>
+                  <div class="pace-card__title">Selective</div>
+                  <div class="pace-card__desc">3–4, the right ones</div>
+                </div>
+                <div class="pace-card">
+                  <div class="pace-card__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+                  <div class="pace-card__title">Just events</div>
+                  <div class="pace-card__desc">Side events only</div>
+                </div>
+              </div>
+
+              <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px; margin-top: 8px;">When are you most on?</div>
+              <div style="display:flex; gap: 8px;">
+                <div class="chip active">🌅 Early</div>
+                <div class="chip">☀️ Mid-day</div>
+                <div class="chip">🌆 Evening</div>
+                <div class="chip">🌙 Night owl</div>
+              </div>
+
+              <div class="scr__cta">
+                <button class="btn-primary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== STEP 8: SOCIAL ============== -->
+  <section class="step">
+    <div class="step__head">
+      <div class="step__num">08<em>/10</em></div>
+      <div>
+        <h2 class="step__title">Social preference <span class="tag" style="background: var(--sq-red); color:white; vertical-align: middle;">NEW</span></h2>
+        <p class="step__desc">Tune networking density. Drives whether we suggest 50-person mixers or 5-person dinners. Single slider with friendly anchor copy.</p>
+        <div class="step__notes">
+          <div class="note">Optional — defaults to middle if skipped</div>
+        </div>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A</span> Slider with preview</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="cur"></span><span></span>
+                </div>
+                <a class="scr__skip">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 9 of 10</div>
+              <h2 class="scr__title">How do you like to network?</h2>
+              <p class="scr__sub">Quality vs. quantity. Move the slider — no wrong answer.</p>
+
+              <div style="margin-top: 24px;">
+                <div style="display:flex; justify-content: space-between; margin-bottom: 16px; font-size: 12px; color: var(--fg-muted);">
+                  <div style="text-align:center; max-width: 80px;"><div style="font-size: 28px; margin-bottom: 4px;">🪴</div>Deep, fewer</div>
+                  <div style="text-align:center; max-width: 80px;"><div style="font-size: 28px; margin-bottom: 4px;">🎉</div>Big rooms</div>
+                </div>
+                <div class="slider-track">
+                  <div class="slider-fill" style="width: 38%;"></div>
+                  <div class="slider-thumb" style="left: 38%;"></div>
+                </div>
+                <div style="margin-top: 24px; padding: 16px; border-radius: 14px; background: var(--bg-surface); border: 1px solid var(--border-subtle);">
+                  <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: 8px;">Your style</div>
+                  <div style="font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.2; margin-bottom: 6px;">Quality conversations</div>
+                  <div style="font-size: 13px; color: var(--fg-muted); line-height: 1.5;">We'll prioritize founder dinners, smaller meetups, and 1:1 intro requests over big mixers.</div>
+                </div>
+              </div>
+
+              <div class="scr__cta">
+                <button class="btn-primary">Continue</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== STEP 9: MUST-HAVES ============== -->
+  <section class="step">
+    <div class="step__head">
+      <div class="step__num">09<em>/10</em></div>
+      <div>
+        <h2 class="step__title">Must-haves <span class="tag" style="background: var(--sq-red); color:white; vertical-align: middle;">NEW</span></h2>
+        <p class="step__desc">Specific people, companies, or speakers the user wants to meet/see. Searchable with smart suggestions based on their role + topics. Optional — most powerful step but skippable.</p>
+        <div class="step__notes">
+          <div class="note">Suggestions seeded from goals + topics</div>
+          <div class="note note--why"><strong>Why optional:</strong> Don't gate users without specific names yet</div>
+        </div>
+      </div>
+    </div>
+    <div class="frames">
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A</span> Search + suggest</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="cur"></span>
+                </div>
+                <a class="scr__skip">Skip</a>
+              </div>
+              <div class="scr__step-label">Step 10 of 10</div>
+              <h2 class="scr__title">Anyone you want to meet?</h2>
+              <p class="scr__sub">People, speakers, or companies. We'll keep an eye out and ping you when paths cross.</p>
+
+              <div class="seg-tabs">
+                <button aria-pressed="true">People</button>
+                <button>Companies</button>
+                <button>Speakers</button>
+              </div>
+              <div class="search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input placeholder="Search people…"/>
+              </div>
+
+              <div class="pill-list">
+                <div class="pill"><span class="av"></span>Vitalik B.<span class="x">×</span></div>
+                <div class="pill"><span class="av" style="background: linear-gradient(135deg, #6088F7, #1E4EB0);"></span>Sandeep N.<span class="x">×</span></div>
+              </div>
+
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-subtle); margin: 8px 0;">Suggested for founders in DeFi</div>
+              <div class="suggest-list">
+                <div class="suggest"><div class="suggest__av">SC</div><div class="suggest__body"><div class="suggest__name">Stani Culechov</div><div class="suggest__role">Founder · Aave</div></div><div class="suggest__add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
+                <div class="suggest"><div class="suggest__av" style="background: linear-gradient(135deg, #6088F7, #1E4EB0);">RL</div><div class="suggest__body"><div class="suggest__name">Rune Christensen</div><div class="suggest__role">Founder · Sky / MakerDAO</div></div><div class="suggest__add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
+                <div class="suggest"><div class="suggest__av" style="background: linear-gradient(135deg, #FF8C9E, #C61E4A);">HW</div><div class="suggest__body"><div class="suggest__name">Hayden Adams</div><div class="suggest__role">Founder · Uniswap</div></div><div class="suggest__add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
+              </div>
+
+              <div class="scr__cta">
+                <button class="btn-primary">Build my schedule</button>
+                <button class="btn-tertiary">Skip — no specific names</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== STEP 10: REVIEW + LOADING + DONE ============== -->
+  <section class="step">
+    <div class="step__head">
+      <div class="step__num">10<em>/10</em></div>
+      <div>
+        <h2 class="step__title">Review · Curating · Done</h2>
+        <p class="step__desc">Three connected moments. Review lets users edit before committing. Curating uses the brand mark in motion + step-by-step status (much better than just "Curating your schedule.."). Done = first reveal of the curated plan.</p>
+        <div class="step__notes">
+          <div class="note note--why"><strong>Why a review step:</strong> 30 seconds invested = 5 min saved if anything's off</div>
+        </div>
+      </div>
+    </div>
+    <div class="frames">
+
+      <!-- Review -->
+      <div class="frame">
+        <div class="frame__label"><span class="badge">A</span> Review</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr">
+              <div class="scr__top">
+                <button class="scr__back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="scr__progress">
+                  <span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span><span class="done"></span>
+                </div>
+                <a class="scr__skip" style="visibility:hidden;">Skip</a>
+              </div>
+              <div class="scr__step-label">Last step</div>
+              <h2 class="scr__title">Look good?</h2>
+              <p class="scr__sub">Tap any line to tweak before we build your plan.</p>
+
+              <div class="review-list">
+                <div class="review-row">
+                  <div class="review-row__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+                  <div class="review-row__body"><div class="review-row__label">Conference · Days</div><div class="review-row__val">TOKEN2049 Dubai · Wed–Thu</div></div>
+                  <span class="review-row__edit">Edit</span>
+                </div>
+                <div class="review-row">
+                  <div class="review-row__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></div>
+                  <div class="review-row__body"><div class="review-row__label">You</div><div class="review-row__val">Founder · Fundraising, Partnerships</div></div>
+                  <span class="review-row__edit">Edit</span>
+                </div>
+                <div class="review-row">
+                  <div class="review-row__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4M3.34 19a10 10 0 1 1 17.32 0"/></svg></div>
+                  <div class="review-row__body"><div class="review-row__label">Topics</div><div class="review-row__val">AI, DeFi, Infra, SaaS</div></div>
+                  <span class="review-row__edit">Edit</span>
+                </div>
+                <div class="review-row">
+                  <div class="review-row__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                  <div class="review-row__body"><div class="review-row__label">Style</div><div class="review-row__val">Packed · Mornings · Quality network</div></div>
+                  <span class="review-row__edit">Edit</span>
+                </div>
+                <div class="review-row">
+                  <div class="review-row__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+                  <div class="review-row__body"><div class="review-row__label">Must-haves</div><div class="review-row__val">2 people</div></div>
+                  <span class="review-row__edit">Edit</span>
+                </div>
+              </div>
+
+              <div class="scr__cta">
+                <button class="btn-primary">Curate my schedule</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="frame">
+        <div class="frame__label"><span class="badge badge--alt">B</span> Curating · with status</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen" style="position: relative;">
+            <div class="bg-bloom bg-bloom--soft"></div>
+            <div class="scr-load" style="position:relative; z-index: 5;">
+              <img src="assets/sq-mark.svg" class="scr-load__mark" alt=""/>
+              <h2 class="scr-load__title">Building your schedule</h2>
+              <p class="scr-load__sub">A few seconds. We're picking the right talks for a founder fundraising in DeFi.</p>
+              <ul class="scr-load__steps">
+                <li class="scr-load__step done"><span class="dot"></span>Pulled 384 events</li>
+                <li class="scr-load__step done"><span class="dot"></span>Matched to your goals</li>
+                <li class="scr-load__step cur"><span class="dot"></span>Routing your days</li>
+                <li class="scr-load__step"><span class="dot"></span>Picking people to meet</li>
+              </ul>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+      <!-- Done -->
+      <div class="frame">
+        <div class="frame__label"><span class="badge badge--alt2">C</span> Done · the reveal</div>
+        <div class="ph"><div class="ph__notch"></div>
+          <div class="ph__sb"><span>9:41</span><span class="sb-right">●●●●</span></div>
+          <div class="ph__screen">
+            <div class="scr" style="padding-top: 64px;">
+              <img src="assets/sq-mark.svg" style="width: 56px; height: 56px; margin-bottom: 28px;" alt=""/>
+              <h2 class="scr-done__title" style="font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 14px;">Your <em>TOKEN2049</em> is ready.</h2>
+              <p class="scr__sub" style="margin-bottom: 24px;">21 events across 2 days. 6 people on watch. Tweak anytime.</p>
+
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px;">
+                <div style="padding: 14px; border-radius: 14px; background: var(--bg-surface); border: 1px solid var(--border-subtle);">
+                  <div style="font-family: var(--font-display); font-weight: 700; font-size: 28px; line-height: 1; margin-bottom: 4px;">21</div>
+                  <div style="font-size: 12px; color: var(--fg-muted);">events curated</div>
+                </div>
+                <div style="padding: 14px; border-radius: 14px; background: var(--bg-surface); border: 1px solid var(--border-subtle);">
+                  <div style="font-family: var(--font-display); font-weight: 700; font-size: 28px; line-height: 1; margin-bottom: 4px;">6</div>
+                  <div style="font-size: 12px; color: var(--fg-muted);">people on watch</div>
+                </div>
+                <div style="padding: 14px; border-radius: 14px; background: var(--bg-surface); border: 1px solid var(--border-subtle); grid-column: span 2;">
+                  <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--sq-red); margin-bottom: 6px;">Up next</div>
+                  <div style="font-family: var(--font-display); font-weight: 700; font-size: 15px; margin-bottom: 4px;">Stable Summit IV — 9:00 AM</div>
+                  <div style="font-size: 12px; color: var(--fg-muted);">Sheraton · 3 founders to meet</div>
+                </div>
+              </div>
+
+              <div class="scr__cta">
+                <button class="btn-primary">See my schedule</button>
+              </div>
+            </div>
+          </div>
+          <div class="ph__home"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============== Final notes ============== -->
+  <section class="step" style="border-bottom: none;">
+    <div class="step__head">
+      <div class="step__num" style="font-size: 28px;">↳</div>
+      <div>
+        <h2 class="step__title">Notes for engineering & next iterations</h2>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+      <div class="card">
+        <div style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px;">All steps skippable except Conference</div>
+        <p style="font-size: 13px; color: var(--fg-muted); line-height: 1.5;">Skip uses sensible defaults. Track skip rate per step — anything &gt; 30% skip is a candidate to delete or merge.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px;">Progress feels short</div>
+        <p style="font-size: 13px; color: var(--fg-muted); line-height: 1.5;">10 dots looks long; we use a thin segmented bar instead. Visually compresses 10 steps into ~70% of the bar at start.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px;">Adaptive copy</div>
+        <p style="font-size: 13px; color: var(--fg-muted); line-height: 1.5;">Goals + Topics steps re-phrase based on the role chosen ("As a Founder…" / "As a Journalist…"). Tiny detail; big difference in feel.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px;">Resume-on-relaunch</div>
+        <p style="font-size: 13px; color: var(--fg-muted); line-height: 1.5;">Drop-off is real on multi-step flows. Persist state at every Continue tap; resume mid-flow on app relaunch.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px;">Re-onboarding for new conferences</div>
+        <p style="font-size: 13px; color: var(--fg-muted); line-height: 1.5;">When a returning user adds a new conference, only re-ask: Days, Goals (pre-filled, editable), Must-haves. Skip role/topics/style.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: var(--font-display); font-weight: 700; margin-bottom: 8px;">Chosen variants</div>
+        <p style="font-size: 13px; color: var(--fg-muted); line-height: 1.5;">Welcome A · Role A · Topics B (rich cards) · Style A (sliders) feel strongest as a set. Final call yours.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const toggle = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('sq-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  toggle.addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', cur);
+    localStorage.setItem('sq-theme', cur);
+  });
+</script>
+</body>
+</html>
