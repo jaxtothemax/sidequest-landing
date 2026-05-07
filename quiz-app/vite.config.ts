@@ -35,8 +35,9 @@ export default defineConfig({
   base: '/quiz/',
 
   build: {
-    // Output into <repo-root>/quiz so Vercel deploys it alongside the landing page
-    outDir: '../quiz',
+    // Output into <repo-root>/public/quiz — Vercel deploys the public/ dir.
+    // (Only empties public/quiz, not the parent public/ which holds the landing page.)
+    outDir: '../public/quiz',
     emptyOutDir: true,
   },
 
