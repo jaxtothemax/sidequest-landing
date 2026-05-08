@@ -275,18 +275,26 @@
 
 /* Event card */
 .ev-card {
+  /* Card bg is always white — pin tokens to light values so text stays readable in dark mode. */
+  --fg-default: #080F13;
+  --fg-muted: #596265;
+  --fg-subtle: #94A3B8;
+  --bg-surface: #F1F4F8;
+  --border-subtle: #E3EAF0;
+  color: var(--fg-default);
   display: grid;
-  grid-template-columns: 64px 1fr auto;
-  gap: 12px;
-  padding: 14px;
+  grid-template-columns: 56px 1fr auto;
+  gap: 14px;
+  padding: 14px 16px;
   border-radius: 14px;
   border: 1px solid var(--border-subtle);
   background: var(--background, #fff);
+  box-shadow: 0 1px 2px rgba(8, 15, 19, 0.04);
   margin-bottom: 8px;
 }
 .ev-card.is-in {
   border-color: var(--fg-default);
-  box-shadow: 0 0 0 1px var(--fg-default) inset;
+  box-shadow: 0 0 0 1px var(--fg-default) inset, 0 1px 2px rgba(8, 15, 19, 0.04);
 }
 .ev-card__time {
   display: flex; flex-direction: column;
@@ -295,8 +303,9 @@
 }
 .ev-card__start {
   font-family: var(--font-display);
-  font-weight: 700; font-size: 13px;
+  font-weight: 700; font-size: 14px;
   color: var(--fg-default);
+  letter-spacing: -0.01em;
 }
 .ev-card__end {
   font-size: 11px; color: var(--fg-muted);
@@ -305,14 +314,14 @@
 .ev-card__body { min-width: 0; }
 .ev-card__top {
   display: flex; gap: 8px; align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 .ev-card__tag {
-  padding: 2px 8px; border-radius: 6px;
-  background: var(--bg-surface);
+  padding: 3px 9px; border-radius: 6px;
+  background: #080F13;
   font-size: 10px; font-weight: 700;
-  letter-spacing: 0.04em; text-transform: uppercase;
-  color: var(--fg-default);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: #FFFFFF;
 }
 .ev-card__match {
   font-size: 11px; font-weight: 600;
@@ -322,19 +331,20 @@
   font-family: var(--font-display);
   font-weight: 700; font-size: 15px;
   line-height: 1.3;
-  margin-bottom: 4px;
+  color: var(--fg-default);
+  margin: 0 0 4px;
 }
 .ev-card__desc {
   font-size: 12px; line-height: 1.45;
   color: var(--fg-muted);
-  margin-bottom: 8px;
+  margin: 0 0 10px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .ev-card__meta {
-  display: flex; gap: 12px; flex-wrap: wrap;
+  display: flex; gap: 14px; flex-wrap: wrap;
   font-size: 11px; color: var(--fg-muted);
 }
 .ev-card__meta span {
@@ -557,6 +567,14 @@
 .paywall__sheet {
   position: absolute; left: 0; right: 0; bottom: 0;
   background: var(--background, #fff);
+  /* Sheet bg is always white — pin tokens to light values so text stays readable in dark mode. */
+  --fg-default: #080F13;
+  --fg-muted: #596265;
+  --fg-subtle: #94A3B8;
+  --bg-surface: #F7F9FB;
+  --border-subtle: #E3EAF0;
+  --border-default: #CBD5E1;
+  color: var(--fg-default);
   border-top-left-radius: 24px;
   border-top-right-radius: 24px;
   box-shadow: 0 -16px 40px rgba(8, 15, 19, 0.18);
