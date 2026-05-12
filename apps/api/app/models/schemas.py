@@ -217,3 +217,19 @@ class AdminConferenceUpsert(BaseModel):
     end_date: date_t | None = None
     timezone: str | None = None
     meta: dict[str, Any] = Field(default_factory=dict)
+
+
+# ============================================================================
+# Chat
+# ============================================================================
+
+
+class ChatMessage(BaseModel):
+    role: str  # 'user' | 'assistant' | 'system'
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatMessage]
+    model: str | None = None
+    conference_id: str | None = None

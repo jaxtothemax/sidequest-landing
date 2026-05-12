@@ -7,6 +7,8 @@ OpenRouterClient hits the real API; MockLLMClient is used in tests.
 
 from __future__ import annotations
 
+import json
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Protocol
@@ -31,6 +33,15 @@ class LLMClient(Protocol):
         *,
         model: str | None = None,
     ) -> LLMResult: ...
+
+    async def complete_stream(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        model: str | None = None,
+    ) -> "AsyncIterator[str]":
+        """Yields content deltas (str) as they arrive."""
+        ...
 
 
 class OpenRouterClient:
@@ -80,6 +91,56 @@ class OpenRouterClient:
         content = data["choices"][0]["message"]["content"]
         tokens_used = int((data.get("usage") or {}).get("total_tokens") or 0)
         return LLMResult(content=content, tokens_used=tokens_used, model=use_model)
+
+    async def complete_stream(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        model: str | None = None,
+    ) -> AsyncIterator[str]:
+        if not self._api_key:
+            raise RuntimeError("OPENROUTER_API_KEY not configured")
+        use_model = model or self._default_model
+        payload = {
+            "model": use_model,
+            "messages": messages,
+            "stream": True,
+        }
+        headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://sidequest.app",
+            "X-Title": "SideQuest",
+        }
+
+        async with httpx.AsyncClient(timeout=httpx.Timeout(120.0, read=120.0)) as client:
+            async with client.stream(
+                "POST",
+                f"{self._base_url}/chat/completions",
+                json=payload,
+                headers=headers,
+            ) as resp:
+                resp.raise_for_status()
+                async for raw_line in resp.aiter_lines():
+                    if not raw_line:
+                        continue
+                    if not raw_line.startswith("data:"):
+                        continue
+                    data_str = raw_line[5:].strip()
+                    if not data_str or data_str == "[DONE]":
+                        if data_str == "[DONE]":
+                            return
+                        continue
+                    try:
+                        frame = json.loads(data_str)
+                    except json.JSONDecodeError:
+                        continue
+                    choices = frame.get("choices") or []
+                    if not choices:
+                        continue
+                    delta = (choices[0].get("delta") or {}).get("content")
+                    if isinstance(delta, str) and delta:
+                        yield delta
 
 
 @lru_cache

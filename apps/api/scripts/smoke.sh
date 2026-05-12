@@ -274,6 +274,58 @@ print(f'  → {len(ids)} locked events; manual present, e3 absent')
   echo "phase-5 OK"
 }
 
+phase_6() {
+  : "${SUPABASE_URL:?source apps/api/.env first}"
+  HERE="$(cd "$(dirname "$0")" && pwd)"
+  JWT=$(uv run --project "$HERE/.." python "$HERE/mint_test_jwt.py")
+
+  echo "==> POST /api/chat (SSE stream)"
+  RESP=$(mktemp)
+  curl -sN -X POST "$BASE/api/chat" \
+    -H "authorization: Bearer $JWT" \
+    -H 'content-type: application/json' \
+    -d '{"messages":[{"role":"user","content":"In one short sentence: what is my highest priority event on day 1 and why?"}]}' \
+    > "$RESP"
+
+  python3 -c "
+import sys, json
+body = open('$RESP').read()
+delta_count = 0
+got_done = False
+got_terminator = False
+combined = []
+for line in body.splitlines():
+    if not line.startswith('data:'):
+        continue
+    data = line[5:].strip()
+    if not data:
+        continue
+    if data == '[DONE]':
+        got_terminator = True
+        continue
+    obj = json.loads(data)
+    t = obj.get('type')
+    if t == 'delta':
+        delta_count += 1
+        combined.append(obj.get('content',''))
+    elif t == 'done':
+        got_done = True
+    elif t == 'error':
+        print('ERROR FRAME:', obj.get('content'), file=sys.stderr)
+        sys.exit(2)
+assert delta_count >= 1, ('no delta frames', body[:400])
+assert got_done, 'missing done frame'
+assert got_terminator, 'missing [DONE] terminator'
+text = ''.join(combined)
+print(f'  → {delta_count} delta frames, done + [DONE] terminator received')
+print(f'  → assistant: {text[:200]}')
+"
+  rm -f "$RESP"
+
+  echo
+  echo "phase-6 OK"
+}
+
 case "$PHASE" in
   phase-0) phase_0 ;;
   phase-1) phase_1 ;;
@@ -281,10 +333,11 @@ case "$PHASE" in
   phase-3) phase_3 ;;
   phase-4) phase_4 ;;
   phase-5) phase_5 ;;
-  all) phase_0 && phase_1 && phase_2 && phase_3 && phase_4 && phase_5 ;;
+  phase-6) phase_6 ;;
+  all) phase_0 && phase_1 && phase_2 && phase_3 && phase_4 && phase_5 && phase_6 ;;
   *)
     echo "unknown phase: $PHASE" >&2
-    echo "available: phase-0..phase-5, all" >&2
+    echo "available: phase-0..phase-6, all" >&2
     exit 2
     ;;
 esac
