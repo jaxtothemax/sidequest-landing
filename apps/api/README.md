@@ -40,8 +40,16 @@ docker run --rm -p 8000:8000 --env-file .env sidequest-api
 ## Implemented so far
 
 - **Phase 0** — skeleton, `/health`, JWT verifier wired (no protected routes yet).
+- **Phase 1** — `GET /api/conferences[/{id}[/events]]`, schema migrations `0001_init.sql` + `0002_seed_token2049.sql`, in-memory fallback for local dev when Supabase isn't configured.
 
-Phases 1–6 land incrementally; see the plan file.
+Phases 2–6 land incrementally; see the plan file.
+
+## Data backend
+
+The catalog routes work in two modes — driven by env vars:
+
+- **With Supabase** (`SUPABASE_URL` + `SUPABASE_SERVICE_KEY` set): reads via the service-role client. Apply `supabase/migrations/` first (`supabase db push` or `psql -f`).
+- **Without Supabase** (env empty): falls back to the in-memory copy of the seed in `app/services/seed_data.py`. This lets the API + tests run with zero setup. The two are kept in sync by hand — update both when you change the seed.
 
 ## Admin role
 
