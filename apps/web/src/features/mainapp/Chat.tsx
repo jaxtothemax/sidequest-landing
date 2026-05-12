@@ -19,7 +19,7 @@ const INITIAL: ChatMsg[] = [
 ]
 
 export function ChatPage() {
-  const { events } = useEvents()
+  const { events, conferenceId } = useEvents()
   const [messages, setMessages] = useState<ChatMsg[]>(INITIAL)
   const [input, setInput] = useState('')
   const [thinking, setThinking] = useState(false)
@@ -45,6 +45,7 @@ export function ChatPage() {
     try {
       const stream = await chatStream(
         next.map((m) => ({ role: m.role, content: m.content })),
+        { conferenceId },
       )
       const reader = stream.getReader()
       let acc = ''

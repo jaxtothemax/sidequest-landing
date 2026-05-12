@@ -5,12 +5,21 @@ import { useNavigate } from 'react-router-dom'
 import SymbolSVG from '../../assets/Symbol.svg'
 import { EventCard } from '../../components/EventCard'
 import { useEvents } from '../../hooks/useEvents'
+import { useOnboarding } from '../../stores/onboardingStore'
 
 export default function Paywall() {
   const navigate = useNavigate()
-  const { events } = useEvents('token2049-dubai-2026')
+  const { events } = useEvents()
+  const curatedSchedule = useOnboarding((s) => s.curatedSchedule)
 
-  const scheduled = events
+  // After the LLM curates a schedule, mark those events as `inSchedule` so the
+  // Paywall preview reflects the user's actual picks (not the seed defaults).
+  const curatedIds = new Set((curatedSchedule ?? []).map((c) => c.event_id))
+  const eventsWithCuration = curatedIds.size
+    ? events.map((e) => ({ ...e, inSchedule: curatedIds.has(e.id) }))
+    : events
+
+  const scheduled = eventsWithCuration
     .filter((e) => e.inSchedule)
     .sort((a, b) => a.day - b.day || a.start.localeCompare(b.start))
   const wed = scheduled.filter((e) => e.day === 29)

@@ -1,21 +1,34 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Filter, Search } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { EventCard } from '../../components/EventCard'
 import { pinEvent } from '../../api/events'
 import { useEvents } from '../../hooks/useEvents'
+import { useMySchedule } from '../../hooks/useMySchedule'
 import type { SeedEvent } from '../../data/seedEvents'
 
 export function SchedulePage() {
-  const { events: data, isFallback } = useEvents()
+  const { events: catalogEvents, isFallback } = useEvents()
+  const { scheduledIds, isReady: mineIsReady } = useMySchedule()
   const queryClient = useQueryClient()
-  const [events, setEvents] = useState<SeedEvent[]>(data)
 
-  // Reseed local state when the upstream data changes.
-  if (events !== data && data.length && events.length === 0) {
-    setEvents(data)
-  }
+  // Server-truth: an event is "in schedule" iff /api/me/schedule lists it.
+  // Until that query resolves, fall back to the catalog's `inSchedule` flag.
+  const merged: SeedEvent[] = useMemo(
+    () =>
+      catalogEvents.map((e) => ({
+        ...e,
+        inSchedule: mineIsReady ? scheduledIds.has(e.id) : e.inSchedule,
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [catalogEvents, mineIsReady, Array.from(scheduledIds).sort().join(',')],
+  )
+
+  const [events, setEvents] = useState<SeedEvent[]>(merged)
+  useEffect(() => {
+    setEvents(merged)
+  }, [merged])
 
   const [view, setView] = useState<'mine' | 'all'>('mine')
   const [day, setDay] = useState<number | 'all'>('all')
@@ -27,7 +40,10 @@ export function SchedulePage() {
 
   const mut = useMutation({
     mutationFn: ({ id, pinned }: { id: string; pinned: boolean }) => pinEvent(id, pinned),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['events'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] })
+      queryClient.invalidateQueries({ queryKey: ['me', 'schedule'] })
+    },
   })
 
   const toggle = (id: string) => {

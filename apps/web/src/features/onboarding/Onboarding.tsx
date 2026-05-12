@@ -123,6 +123,9 @@ export default function Onboarding() {
 
   const curateMutation = useMutation({
     mutationFn: (s: OnboardingState) => curate(s),
+    onSuccess: (data) => {
+      store.setCurated(data.curate_id, data.schedule)
+    },
   })
 
   // Fire curation when entering the loading screen (step 11).

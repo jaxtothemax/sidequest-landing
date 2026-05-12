@@ -2,18 +2,25 @@ import { useQuery } from '@tanstack/react-query'
 
 import { getEvents } from '../api/events'
 import { SEED_EVENTS, type SeedEvent } from '../data/seedEvents'
+import { useOnboarding } from '../stores/onboardingStore'
 
 /**
- * Returns the live events from /api/events, keyed by conference. Falls back to the offline
- * fixture if the API is unreachable or hasn't been populated yet.
+ * Returns the live events for a conference. Falls back to the offline
+ * fixture if the API is unreachable.
+ *
+ * If no conferenceId is passed, uses the active conference from the
+ * onboarding store (defaults to 'token2049').
  */
-export function useEvents(conferenceId?: string) {
+export function useEvents(conferenceIdArg?: string) {
+  const activeConferenceId = useOnboarding((s) => s.state.conferenceId)
+  const conferenceId = conferenceIdArg ?? activeConferenceId ?? 'token2049'
+
   const q = useQuery({
-    queryKey: ['events', conferenceId ?? 'all'],
+    queryKey: ['events', conferenceId],
     queryFn: () => getEvents(conferenceId),
   })
 
-  // Map the API EventDTO to the legacy SeedEvent shape used by the UI components.
+  // Map the API Event to the legacy SeedEvent shape used by EventCard etc.
   const live: SeedEvent[] | null = q.data?.events.length
     ? q.data.events.map((e) => ({
         id: e.id,
@@ -30,5 +37,5 @@ export function useEvents(conferenceId?: string) {
       }))
     : null
 
-  return { events: live ?? SEED_EVENTS, isFallback: !live, ...q }
+  return { events: live ?? SEED_EVENTS, isFallback: !live, conferenceId, ...q }
 }
