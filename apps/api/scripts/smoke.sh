@@ -42,13 +42,50 @@ print('  → name OK, days 29 & 30 enabled')
   echo "phase-1 OK"
 }
 
+phase_2() {
+  echo "==> POST $BASE/api/curate (real OpenRouter call — may take 10–30s)"
+  ANON_ID="${ANON_ID:-$(uuidgen | tr 'A-Z' 'a-z')}"
+  PAYLOAD=$(cat <<JSON
+{
+  "anon_id": "$ANON_ID",
+  "onboarding": {
+    "conferenceId": "token2049",
+    "attendance": "partial",
+    "days": [29, 30],
+    "role": "founder",
+    "goals": ["fundraising", "networking", "partnerships"],
+    "topics": ["DeFi", "AI / ML", "Stablecoins"],
+    "pace": 50,
+    "energy": 60,
+    "social": 70,
+    "mustHaves": ["a16zcrypto", "hayden"]
+  }
+}
+JSON
+)
+  RESP=$(curl -sf -X POST "$BASE/api/curate" -H 'content-type: application/json' -d "$PAYLOAD")
+  echo "$RESP" | python3 -c "
+import sys,json
+d = json.load(sys.stdin)
+assert d['curate_id'], d
+assert isinstance(d['schedule'], list), d
+assert len(d['schedule']) >= 1, ('schedule empty', d)
+print(f'  → curate_id={d[\"curate_id\"][:8]}…  schedule_len={len(d[\"schedule\"])}  tokens={d[\"tokens_used\"]}')
+print(f'  → first event: {d[\"schedule\"][0][\"event_id\"]}  priority={d[\"schedule\"][0][\"priority\"]}')
+print(f'    rationale: {d[\"schedule\"][0][\"rationale\"][:120]}')
+"
+  echo
+  echo "phase-2 OK"
+}
+
 case "$PHASE" in
   phase-0) phase_0 ;;
   phase-1) phase_1 ;;
-  all) phase_0 && phase_1 ;;
+  phase-2) phase_2 ;;
+  all) phase_0 && phase_1 && phase_2 ;;
   *)
     echo "unknown phase: $PHASE" >&2
-    echo "available: phase-0, phase-1, all" >&2
+    echo "available: phase-0, phase-1, phase-2, all" >&2
     exit 2
     ;;
 esac

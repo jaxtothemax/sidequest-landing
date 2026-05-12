@@ -49,3 +49,44 @@ class SuggestionOut(BaseModel):
     kind: str
     name: str
     role: str | None = None
+
+
+# ============================================================================
+# Onboarding + curation — mirrors apps/web/src/stores/onboardingStore.ts
+# ============================================================================
+
+
+class OnboardingState(BaseModel):
+    """Exact mirror of the frontend OnboardingState. Field names match the TS."""
+
+    conferenceId: str
+    attendance: str | None = None  # 'full' | 'partial' | 'side-only'
+    days: list[int] = Field(default_factory=list)
+    role: str | None = None
+    goals: list[str] = Field(default_factory=list)
+    topics: list[str] = Field(default_factory=list)
+    pace: int = 50
+    energy: int = 50
+    social: int = 50
+    mustHaves: list[str] = Field(default_factory=list)
+
+
+class CuratedItem(BaseModel):
+    event_id: str
+    day: str
+    start: str
+    end: str
+    rationale: str
+    priority: str  # 'must' | 'should' | 'maybe'
+
+
+class CurateRequest(BaseModel):
+    onboarding: OnboardingState
+    anon_id: str  # client-generated UUID v4
+    model: str | None = None
+
+
+class CurateResponse(BaseModel):
+    curate_id: str
+    schedule: list[CuratedItem]
+    tokens_used: int

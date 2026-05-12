@@ -41,8 +41,9 @@ docker run --rm -p 8000:8000 --env-file .env sidequest-api
 
 - **Phase 0** — skeleton, `/health`, JWT verifier wired (no protected routes yet).
 - **Phase 1** — `GET /api/conferences[/{id}[/events]]`, schema migrations `0001_init.sql` + `0002_seed_token2049.sql`, in-memory fallback for local dev when Supabase isn't configured.
+- **Phase 2** — `POST /api/curate` (no auth). Pre-filters events to attended days, sends candidates + onboarding to OpenRouter (default `anthropic/claude-sonnet-4-5`), parses JSON (handles Claude's markdown-fenced output), validates against the candidate set, persists to `anonymous_curations`.
 
-Phases 2–6 land incrementally; see the plan file.
+Phases 3–6 land incrementally; see the plan file.
 
 ## Data backend
 
