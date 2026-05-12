@@ -90,3 +90,48 @@ class CurateResponse(BaseModel):
     curate_id: str
     schedule: list[CuratedItem]
     tokens_used: int
+
+
+# ============================================================================
+# Auth / unlock / schedule
+# ============================================================================
+
+
+class ClaimRequest(BaseModel):
+    anon_id: str
+
+
+class ClaimResponse(BaseModel):
+    ok: bool = True
+    user_curation_id: str
+
+
+class UnlockResponse(BaseModel):
+    ok: bool = True
+    unlocked: bool
+
+
+class ScheduleItem(BaseModel):
+    """Enriched event with curation overlay — what /api/me/schedule returns."""
+
+    # Event fields (subset matching EventOut)
+    id: str
+    conference_id: str
+    title: str
+    description: str | None = None
+    start: datetime
+    end: datetime
+    venue: str | None = None
+    tags: list[str] = Field(default_factory=list)
+    url: str | None = None
+    capacity: int | None = None
+    attendees: int | None = None
+    # Curation overlay
+    rationale: str
+    priority: str  # 'must' | 'should' | 'maybe'
+    inSchedule: bool = True
+
+
+class ScheduleResponse(BaseModel):
+    conference_id: str | None
+    schedule: list[ScheduleItem]

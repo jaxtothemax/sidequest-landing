@@ -42,8 +42,9 @@ docker run --rm -p 8000:8000 --env-file .env sidequest-api
 - **Phase 0** — skeleton, `/health`, JWT verifier wired (no protected routes yet).
 - **Phase 1** — `GET /api/conferences[/{id}[/events]]`, schema migrations `0001_init.sql` + `0002_seed_token2049.sql`, in-memory fallback for local dev when Supabase isn't configured.
 - **Phase 2** — `POST /api/curate` (no auth). Pre-filters events to attended days, sends candidates + onboarding to OpenRouter (default `anthropic/claude-sonnet-4-5`), parses JSON (handles Claude's markdown-fenced output), validates against the candidate set, persists to `anonymous_curations`.
+- **Phase 3** — `POST /api/auth/claim`, `POST /api/unlock` (stub), `GET /api/me/schedule`. Real Supabase Auth JWT verification via JWKS. The claim flow copies an `anonymous_curations` row into `user_curations` for the signed-in user; unlock flips `user_entitlements.unlocked=true`; me/schedule returns the active curation enriched with full event details, sorted by start time. `scripts/mint_test_jwt.py` provisions test users via the Supabase Admin API for local smoke runs.
 
-Phases 3–6 land incrementally; see the plan file.
+Phases 4–6 land incrementally; see the plan file.
 
 ## Data backend
 
