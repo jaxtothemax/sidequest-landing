@@ -103,10 +103,11 @@ class SupabaseCurationsStore:
             self._client.table("anonymous_curations")
             .select("*")
             .eq("anon_id", anon_id)
-            .maybe_single()
+            .limit(1)
             .execute()
         )
-        return res.data if res.data else None
+        rows = res.data or []
+        return rows[0] if rows else None
 
 
 # ---------- FastAPI dependency ----------

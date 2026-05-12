@@ -88,16 +88,19 @@ class SupabaseCatalogRepo:
         return [ConferenceOut(**{**c, "days": by_conf.get(c["id"], [])}) for c in confs]
 
     def get_conference(self, conference_id: str) -> ConferenceOut | None:
+        # supabase-py's maybe_single().execute() returns None on no-match in
+        # current versions — using limit(1) is more portable.
         res = (
             self._client.table("conferences")
             .select("*")
             .eq("id", conference_id)
-            .maybe_single()
+            .limit(1)
             .execute()
         )
-        row = res.data
-        if not row:
+        rows = res.data or []
+        if not rows:
             return None
+        row = rows[0]
         days = (
             self._client.table("conference_days")
             .select("*")
