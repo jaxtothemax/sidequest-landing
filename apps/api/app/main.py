@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.routers import auth, conferences, curate, health, me
+from app.routers import auth, conferences, curate, events, health, me
 
 settings = get_settings()
 
@@ -21,3 +21,4 @@ app.include_router(conferences.router)
 app.include_router(curate.router)
 app.include_router(auth.router)
 app.include_router(me.router)
+app.include_router(events.router)

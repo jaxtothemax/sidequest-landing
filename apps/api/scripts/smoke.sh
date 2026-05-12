@@ -136,15 +136,78 @@ print(f'  → {len(d[\"schedule\"])} items; first={first[\"title\"]!r} priority=
   echo "phase-3 OK"
 }
 
+phase_4() {
+  : "${SUPABASE_URL:?source apps/api/.env first}"
+  HERE="$(cd "$(dirname "$0")" && pwd)"
+  JWT=$(uv run --project "$HERE/.." python "$HERE/mint_test_jwt.py")
+
+  echo "==> baseline: GET /api/me/schedule"
+  BASE_IDS=$(curl -sf "$BASE/api/me/schedule" -H "authorization: Bearer $JWT" \
+    | python3 -c "import sys,json; print(','.join(s['id'] for s in json.load(sys.stdin)['schedule']))")
+  echo "  → $BASE_IDS"
+
+  # Pick one curated event to hide (first one in the list) and one non-curated
+  HIDE_ID=$(echo "$BASE_IDS" | cut -d',' -f1)
+  ADD_ID=""
+  for cand in t2049-e6 t2049-e8 t2049-e9 t2049-e10 t2049-e11 t2049-e12; do
+    if ! echo ",$BASE_IDS," | grep -q ",$cand,"; then
+      ADD_ID="$cand"; break
+    fi
+  done
+  [ -n "$ADD_ID" ] || { echo "no non-curated event available to add" >&2; exit 1; }
+  export HIDE_ID ADD_ID
+  echo "==> will hide $HIDE_ID and add $ADD_ID"
+
+  echo "==> POST /api/events/pin (hide $HIDE_ID)"
+  curl -sf -X POST "$BASE/api/events/pin" \
+    -H "authorization: Bearer $JWT" -H 'content-type: application/json' \
+    -d "{\"event_id\":\"$HIDE_ID\",\"pinned\":false}" >/dev/null
+
+  echo "==> POST /api/events/pin (add $ADD_ID)"
+  curl -sf -X POST "$BASE/api/events/pin" \
+    -H "authorization: Bearer $JWT" -H 'content-type: application/json' \
+    -d "{\"event_id\":\"$ADD_ID\",\"pinned\":true}" >/dev/null
+
+  echo "==> GET /api/me/schedule (after pins)"
+  curl -sf "$BASE/api/me/schedule" -H "authorization: Bearer $JWT" \
+    | python3 -c "
+import sys,json,os
+d = json.load(sys.stdin)
+ids = [s['id'] for s in d['schedule']]
+hide = os.environ['HIDE_ID']
+add  = os.environ['ADD_ID']
+assert hide not in ids, ('expected hidden', hide, ids)
+assert add  in ids,     ('expected added',  add,  ids)
+added = next(s for s in d['schedule'] if s['id']==add)
+assert added['priority']=='must', added
+print(f'  → {len(ids)} items; {hide} hidden, {add} added (priority={added[\"priority\"]})')
+"
+
+  echo "==> GET /api/me/events (pinned-only list)"
+  curl -sf "$BASE/api/me/events" -H "authorization: Bearer $JWT" \
+    | python3 -c "
+import sys,json,os
+items = json.load(sys.stdin)
+ids = [e['id'] for e in items]
+add = os.environ['ADD_ID']
+assert ids == [add], (ids, add)
+print(f'  → {ids}')
+"
+
+  echo
+  echo "phase-4 OK"
+}
+
 case "$PHASE" in
   phase-0) phase_0 ;;
   phase-1) phase_1 ;;
   phase-2) phase_2 ;;
   phase-3) phase_3 ;;
-  all) phase_0 && phase_1 && phase_2 && phase_3 ;;
+  phase-4) phase_4 ;;
+  all) phase_0 && phase_1 && phase_2 && phase_3 && phase_4 ;;
   *)
     echo "unknown phase: $PHASE" >&2
-    echo "available: phase-0, phase-1, phase-2, phase-3, all" >&2
+    echo "available: phase-0, phase-1, phase-2, phase-3, phase-4, all" >&2
     exit 2
     ;;
 esac

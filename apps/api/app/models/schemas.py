@@ -135,3 +135,19 @@ class ScheduleItem(BaseModel):
 class ScheduleResponse(BaseModel):
     conference_id: str | None
     schedule: list[ScheduleItem]
+
+
+# ============================================================================
+# Pins
+# ============================================================================
+
+
+class PinRequest(BaseModel):
+    event_id: str
+    pinned: bool
+
+
+class PinResponse(BaseModel):
+    ok: bool = True
+    event_id: str
+    pinned: bool
