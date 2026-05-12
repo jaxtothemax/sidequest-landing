@@ -277,8 +277,25 @@ class SupabaseEventsAdminRepo:
         return True
 
     def upsert_conference(self, fields: dict[str, Any]) -> dict[str, Any]:
+        days = fields.pop("days", None)
         res = self._client.table("conferences").upsert(fields, on_conflict="id").execute()
-        return (res.data or [fields])[0]
+        row = (res.data or [fields])[0]
+        if days is not None:
+            payload = [
+                {
+                    "conference_id": fields["id"],
+                    "day_num": d["day_num"],
+                    "dow": d["dow"],
+                    "date": d["date"].isoformat() if hasattr(d.get("date"), "isoformat") else d.get("date"),
+                    "enabled": bool(d.get("enabled", True)),
+                }
+                for d in days
+            ]
+            if payload:
+                self._client.table("conference_days").upsert(
+                    payload, on_conflict="conference_id,day_num"
+                ).execute()
+        return row
 
 
 # ---------- FastAPI dependency ----------

@@ -119,4 +119,6 @@ def upsert_conference(
     for k in ("start_date", "end_date"):
         if fields.get(k) is not None:
             fields[k] = fields[k].isoformat()
+    if fields.get("days") is None:
+        fields.pop("days", None)
     return repo.upsert_conference(fields)

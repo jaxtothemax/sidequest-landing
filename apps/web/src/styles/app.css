@@ -5,6 +5,7 @@
 /* Per-feature CSS ported from the quiz-app prototype. */
 @import "./onboarding.css";
 @import "./main-app.css";
+@import "../features/admin/admin.css";
 
 /* App-wide overrides + small helpers. */
 :root {

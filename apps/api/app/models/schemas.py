@@ -208,6 +208,13 @@ class LockRequest(BaseModel):
     locked: bool
 
 
+class AdminConferenceDay(BaseModel):
+    day_num: int
+    dow: str
+    date: date_t | None = None
+    enabled: bool = True
+
+
 class AdminConferenceUpsert(BaseModel):
     id: str
     name: str
@@ -217,6 +224,7 @@ class AdminConferenceUpsert(BaseModel):
     end_date: date_t | None = None
     timezone: str | None = None
     meta: dict[str, Any] = Field(default_factory=dict)
+    days: list[AdminConferenceDay] | None = None
 
 
 # ============================================================================

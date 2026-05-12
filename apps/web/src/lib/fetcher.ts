@@ -18,6 +18,8 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     const text = await r.text().catch(() => '')
     throw new Error(`${r.status} ${r.statusText}: ${text}`)
   }
+  // 204 No Content (e.g., DELETE) — return undefined typed as T.
+  if (r.status === 204) return undefined as T
   return r.json() as Promise<T>
 }
 
