@@ -44,8 +44,9 @@ docker run --rm -p 8000:8000 --env-file .env sidequest-api
 - **Phase 2** — `POST /api/curate` (no auth). Pre-filters events to attended days, sends candidates + onboarding to OpenRouter (default `anthropic/claude-sonnet-4-5`), parses JSON (handles Claude's markdown-fenced output), validates against the candidate set, persists to `anonymous_curations`.
 - **Phase 3** — `POST /api/auth/claim`, `POST /api/unlock` (stub), `GET /api/me/schedule`. Real Supabase Auth JWT verification via JWKS. The claim flow copies an `anonymous_curations` row into `user_curations` for the signed-in user; unlock flips `user_entitlements.unlocked=true`; me/schedule returns the active curation enriched with full event details, sorted by start time. `scripts/mint_test_jwt.py` provisions test users via the Supabase Admin API for local smoke runs.
 - **Phase 4** — `POST /api/events/pin`, `GET /api/me/events`. `services/schedule_merge.py` owns the merge logic (pure function): `pinned=true` events not in the curation are appended with `priority='must'`; `pinned=false` events are filtered out of the curation. `/api/me/schedule` now applies this overlay automatically.
+- **Phase 5** — Admin layer behind `require_admin` (reads `app_metadata.role == "admin"` from the verified JWT). `/api/admin/events` (GET/POST/PATCH/DELETE), `/api/admin/events/{id}/lock`, `/api/admin/conferences`. Patching an event auto-locks it (sets `locked=true`); admin can toggle lock explicitly. `services/admin_repo.py::scraper_upsert()` is the helper future scrapers must call — it no-ops on `locked=true` rows, enforcing the contract documented in `0001_init.sql`. Promote users via `scripts/set_admin.sql` (manual) or `scripts/mint_test_jwt.py --admin` (automated).
 
-Phases 5–6 land incrementally; see the plan file.
+Phase 6 lands next; see the plan file.
 
 ## Data backend
 

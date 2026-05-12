@@ -151,3 +151,69 @@ class PinResponse(BaseModel):
     ok: bool = True
     event_id: str
     pinned: bool
+
+
+# ============================================================================
+# Admin
+# ============================================================================
+
+
+class AdminEventCreate(BaseModel):
+    id: str
+    conference_id: str
+    title: str
+    description: str | None = None
+    starts_at: datetime
+    ends_at: datetime
+    venue: str | None = None
+    tags: list[str] = Field(default_factory=list)
+    url: str | None = None
+    capacity: int | None = None
+    attendees: int | None = None
+
+
+class AdminEventUpdate(BaseModel):
+    conference_id: str | None = None
+    title: str | None = None
+    description: str | None = None
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    venue: str | None = None
+    tags: list[str] | None = None
+    url: str | None = None
+    capacity: int | None = None
+    attendees: int | None = None
+
+
+class AdminEventOut(BaseModel):
+    id: str
+    conference_id: str
+    title: str
+    description: str | None = None
+    starts_at: datetime
+    ends_at: datetime
+    venue: str | None = None
+    tags: list[str] = Field(default_factory=list)
+    url: str | None = None
+    capacity: int | None = None
+    attendees: int | None = None
+    is_manual: bool
+    locked: bool
+    updated_by: str | None = None
+    updated_at: datetime | None = None
+    created_at: datetime | None = None
+
+
+class LockRequest(BaseModel):
+    locked: bool
+
+
+class AdminConferenceUpsert(BaseModel):
+    id: str
+    name: str
+    city: str | None = None
+    venue: str | None = None
+    start_date: date_t | None = None
+    end_date: date_t | None = None
+    timezone: str | None = None
+    meta: dict[str, Any] = Field(default_factory=dict)

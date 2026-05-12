@@ -198,16 +198,93 @@ print(f'  → {ids}')
   echo "phase-4 OK"
 }
 
+phase_5() {
+  : "${SUPABASE_URL:?source apps/api/.env first}"
+  HERE="$(cd "$(dirname "$0")" && pwd)"
+
+  ADMIN_JWT=$(uv run --project "$HERE/.." python "$HERE/mint_test_jwt.py" --admin --email "admin+sq@sidequest.local")
+  USER_JWT=$(uv run --project "$HERE/.." python "$HERE/mint_test_jwt.py" --email "test+sq@sidequest.local")
+  EVENT_ID="manual-smoke-$(date +%s)"
+  export EVENT_ID
+  echo "==> using event id $EVENT_ID"
+
+  echo "==> non-admin user is rejected with 403"
+  STATUS=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/admin/events" -H "authorization: Bearer $USER_JWT")
+  [ "$STATUS" = "403" ] || { echo "expected 403, got $STATUS" >&2; exit 1; }
+  echo "  → 403 OK"
+
+  echo "==> POST /api/admin/events (admin creates manual event)"
+  curl -sf -X POST "$BASE/api/admin/events" \
+    -H "authorization: Bearer $ADMIN_JWT" -H 'content-type: application/json' \
+    -d "{\"id\":\"$EVENT_ID\",\"conference_id\":\"token2049\",\"title\":\"Smoke test side event\",\"starts_at\":\"2026-04-29T20:00:00+04:00\",\"ends_at\":\"2026-04-29T22:00:00+04:00\",\"venue\":\"Beach Club\",\"tags\":[\"Side Events\"]}" \
+    | python3 -c "
+import sys,json,os
+d = json.load(sys.stdin)
+assert d['id']==os.environ['EVENT_ID']
+assert d['is_manual'] is True
+assert d['locked'] is True
+print(f'  → is_manual={d[\"is_manual\"]} locked={d[\"locked\"]}')
+"
+
+  echo "==> PATCH /api/admin/events/t2049-e3 (admin edits a scraped event)"
+  curl -sf -X PATCH "$BASE/api/admin/events/t2049-e3" \
+    -H "authorization: Bearer $ADMIN_JWT" -H 'content-type: application/json' \
+    -d '{"venue":"Hand-corrected venue"}' \
+    | python3 -c "
+import sys,json
+d = json.load(sys.stdin)
+assert d['venue']=='Hand-corrected venue'
+assert d['locked'] is True
+assert d['is_manual'] is False  # scraper origin
+print(f'  → venue updated, locked flipped to true')
+"
+
+  echo "==> POST /api/admin/events/t2049-e3/lock (unlock back)"
+  curl -sf -X POST "$BASE/api/admin/events/t2049-e3/lock" \
+    -H "authorization: Bearer $ADMIN_JWT" -H 'content-type: application/json' \
+    -d '{"locked":false}' \
+    | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['locked'] is False; print('  → locked=false')"
+
+  echo "==> filter list: locked=true"
+  curl -sf "$BASE/api/admin/events?conference_id=token2049&locked=true" \
+    -H "authorization: Bearer $ADMIN_JWT" \
+    | python3 -c "
+import sys,json,os
+items = json.load(sys.stdin)
+ids = [e['id'] for e in items]
+assert os.environ['EVENT_ID'] in ids, ('manual event missing', ids)
+assert 't2049-e3' not in ids, ('e3 should be unlocked again', ids)
+print(f'  → {len(ids)} locked events; manual present, e3 absent')
+"
+
+  echo "==> DELETE the manual event (cleanup)"
+  STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE/api/admin/events/$EVENT_ID" -H "authorization: Bearer $ADMIN_JWT")
+  [ "$STATUS" = "204" ] || { echo "expected 204, got $STATUS" >&2; exit 1; }
+  echo "  → 204 deleted"
+
+  # Restore the venue we corrupted on t2049-e3 for the next smoke run
+  curl -sf -X PATCH "$BASE/api/admin/events/t2049-e3" \
+    -H "authorization: Bearer $ADMIN_JWT" -H 'content-type: application/json' \
+    -d '{"venue":"Main Stage"}' >/dev/null
+  curl -sf -X POST "$BASE/api/admin/events/t2049-e3/lock" \
+    -H "authorization: Bearer $ADMIN_JWT" -H 'content-type: application/json' \
+    -d '{"locked":false}' >/dev/null
+
+  echo
+  echo "phase-5 OK"
+}
+
 case "$PHASE" in
   phase-0) phase_0 ;;
   phase-1) phase_1 ;;
   phase-2) phase_2 ;;
   phase-3) phase_3 ;;
   phase-4) phase_4 ;;
-  all) phase_0 && phase_1 && phase_2 && phase_3 && phase_4 ;;
+  phase-5) phase_5 ;;
+  all) phase_0 && phase_1 && phase_2 && phase_3 && phase_4 && phase_5 ;;
   *)
     echo "unknown phase: $PHASE" >&2
-    echo "available: phase-0, phase-1, phase-2, phase-3, phase-4, all" >&2
+    echo "available: phase-0..phase-5, all" >&2
     exit 2
     ;;
 esac
