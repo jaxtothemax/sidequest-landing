@@ -74,9 +74,8 @@ export default function PaywallThanks() {
   }
 
   return (
-    <div className="sq-app">
-      <div className="sq-frame">
-        <div className="thanks">
+    <div className="thanks-page">
+      <div className="thanks">
           <header className="thanks__header">
             <div className="thanks__check">
               <CheckCircle2 size={28} />
@@ -143,7 +142,6 @@ export default function PaywallThanks() {
               </div>
             ))}
           </section>
-        </div>
       </div>
     </div>
   )
