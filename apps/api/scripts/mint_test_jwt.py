@@ -74,6 +74,16 @@ def set_admin(url: str, key: str, user_id: str, *, admin: bool) -> None:
     ).raise_for_status()
 
 
+def set_password(url: str, key: str, user_id: str, password: str) -> None:
+    """(Re)sets the password on an existing user via the Admin API."""
+    httpx.put(
+        f"{url.rstrip('/')}/auth/v1/admin/users/{user_id}",
+        headers=_admin_headers(key),
+        json={"password": password},
+        timeout=20.0,
+    ).raise_for_status()
+
+
 def sign_in(url: str, key: str, email: str, password: str) -> str:
     base = url.rstrip("/")
     r = httpx.post(
@@ -95,6 +105,11 @@ def main() -> int:
     p.add_argument("--email", default=DEFAULT_EMAIL)
     p.add_argument("--password", default=DEFAULT_PASSWORD)
     p.add_argument("--admin", action="store_true", help="promote to app_metadata.role=admin")
+    p.add_argument(
+        "--set-password",
+        action="store_true",
+        help="force-reset the user's password to --password value (useful for existing accounts)",
+    )
     p.add_argument("--user-id-only", action="store_true", help="print user id instead of JWT")
     args = p.parse_args()
 
@@ -106,6 +121,8 @@ def main() -> int:
 
     user_id = ensure_user(url, key, args.email, args.password)
     set_admin(url, key, user_id, admin=args.admin)
+    if args.set_password:
+        set_password(url, key, user_id, args.password)
 
     if args.user_id_only:
         print(user_id)

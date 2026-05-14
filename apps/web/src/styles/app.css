@@ -247,7 +247,9 @@ button { font-family: inherit; }
 }
 .auth-card p { margin: 0 0 20px; color: var(--fg-muted); font-size: 14px; }
 .auth-card label { display: block; font-size: 12px; color: var(--fg-muted); margin-bottom: 6px; }
-.auth-card input[type="email"] {
+.auth-card input[type="email"],
+.auth-card input[type="password"],
+.auth-card input[type="text"] {
   width: 100%;
   padding: 12px 14px;
   border-radius: 10px;
@@ -256,6 +258,52 @@ button { font-family: inherit; }
   margin-bottom: 12px;
   background: var(--bg-canvas);
   color: var(--fg-default);
+  font-family: inherit;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-card input[type="email"]:focus,
+.auth-card input[type="password"]:focus,
+.auth-card input[type="text"]:focus {
+  border-color: var(--sq-red, #e62c5a);
+  box-shadow: 0 0 0 3px rgba(230, 44, 90, 0.15);
+}
+
+.auth-card input::placeholder {
+  color: var(--fg-subtle);
+}
+
+/* Mode tabs (Password / Magic link) */
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.auth-tab {
+  background: transparent;
+  border: 0;
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.auth-tab:hover {
+  color: var(--fg-default);
+}
+
+.auth-tab.is-active {
+  color: var(--fg-default);
+  border-bottom-color: var(--sq-red, #e62c5a);
 }
 .auth-card .btn-primary { width: 100%; }
 .auth-card .auth-divider {
