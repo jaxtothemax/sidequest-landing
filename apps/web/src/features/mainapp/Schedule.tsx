@@ -25,10 +25,32 @@ export function SchedulePage() {
     [catalogEvents, mineIsReady, Array.from(scheduledIds).sort().join(',')],
   )
 
-  const [events, setEvents] = useState<SeedEvent[]>(merged)
+  // Optimistic overrides keyed by event id. We hold the user's choice
+  // locally until the server-side `merged` confirms the same value, then
+  // drop the override. This prevents the flicker where merged briefly
+  // reverts the optimistic flip before the mutation completes.
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({})
   useEffect(() => {
-    setEvents(merged)
+    setOverrides((o) => {
+      let next = o
+      for (const [id, val] of Object.entries(o)) {
+        const ev = merged.find((e) => e.id === id)
+        if (ev && ev.inSchedule === val) {
+          if (next === o) next = { ...o }
+          delete next[id]
+        }
+      }
+      return next
+    })
   }, [merged])
+
+  const events: SeedEvent[] = useMemo(
+    () =>
+      merged.map((e) =>
+        e.id in overrides ? { ...e, inSchedule: overrides[e.id] } : e,
+      ),
+    [merged, overrides],
+  )
 
   const [view, setView] = useState<'mine' | 'all'>('mine')
   const [day, setDay] = useState<number | 'all'>('all')
@@ -47,12 +69,12 @@ export function SchedulePage() {
   })
 
   const toggle = (id: string) => {
-    setEvents((es) =>
-      es.map((e) => (e.id === id ? { ...e, inSchedule: !e.inSchedule } : e)),
-    )
+    const target = events.find((e) => e.id === id)
+    if (!target) return
+    const next = !target.inSchedule
+    setOverrides((o) => ({ ...o, [id]: next }))
     if (!isFallback) {
-      const target = events.find((e) => e.id === id)
-      mut.mutate({ id, pinned: !(target?.inSchedule ?? false) })
+      mut.mutate({ id, pinned: next })
     }
   }
 
