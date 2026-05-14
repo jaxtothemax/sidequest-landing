@@ -277,10 +277,82 @@ class SupabaseEventsAdminRepo:
         return True
 
     def upsert_conference(self, fields: dict[str, Any]) -> dict[str, Any]:
+        from datetime import date, timedelta
+
         days = fields.pop("days", None)
         res = self._client.table("conferences").upsert(fields, on_conflict="id").execute()
         row = (res.data or [fields])[0]
-        if days is not None:
+
+        # Resolve effective date range (request fields take priority over the
+        # stored row, in case admin only changed dates).
+        start_raw = fields.get("start_date") or row.get("start_date")
+        end_raw = fields.get("end_date") or row.get("end_date")
+
+        def _parse(v: Any) -> date | None:
+            if isinstance(v, date):
+                return v
+            if isinstance(v, str) and v:
+                try:
+                    return date.fromisoformat(v)
+                except ValueError:
+                    return None
+            return None
+
+        sd, ed = _parse(start_raw), _parse(end_raw)
+
+        # Date range present → regenerate conference_days from the range. The
+        # picker shows exactly these dates, all enabled by default. Admin can
+        # toggle individual days off via the `days[]` overrides; existing
+        # toggles are preserved across edits.
+        if sd and ed and sd <= ed:
+            existing = (
+                self._client.table("conference_days")
+                .select("day_num,enabled")
+                .eq("conference_id", fields["id"])
+                .execute()
+                .data
+                or []
+            )
+            existing_by_num = {r["day_num"]: r["enabled"] for r in existing}
+
+            admin_overrides: dict[int, bool] = {}
+            for d in days or []:
+                admin_overrides[d["day_num"]] = bool(d.get("enabled", True))
+
+            generated: list[dict[str, Any]] = []
+            valid_nums: set[int] = set()
+            current = sd
+            while current <= ed:
+                day_num = current.day
+                valid_nums.add(day_num)
+                enabled = admin_overrides.get(day_num)
+                if enabled is None:
+                    enabled = existing_by_num.get(day_num, True)
+                generated.append(
+                    {
+                        "conference_id": fields["id"],
+                        "day_num": day_num,
+                        "dow": current.strftime("%a"),
+                        "date": current.isoformat(),
+                        "enabled": bool(enabled),
+                    }
+                )
+                current += timedelta(days=1)
+
+            if generated:
+                self._client.table("conference_days").upsert(
+                    generated, on_conflict="conference_id,day_num"
+                ).execute()
+
+            # Drop day rows outside the new range so picker stays in sync.
+            for r in existing:
+                if r["day_num"] not in valid_nums:
+                    self._client.table("conference_days").delete().eq(
+                        "conference_id", fields["id"]
+                    ).eq("day_num", r["day_num"]).execute()
+
+        elif days is not None:
+            # Legacy path: no date range — accept admin's explicit days as-is.
             payload = [
                 {
                     "conference_id": fields["id"],
