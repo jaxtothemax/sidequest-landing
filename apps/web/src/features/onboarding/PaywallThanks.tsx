@@ -53,7 +53,7 @@ export default function PaywallThanks() {
   }
 
   const onCreateAccount = () =>
-    navigate('/auth?next=' + encodeURIComponent('/app/schedule'))
+    navigate('/auth?mode=signup&next=' + encodeURIComponent('/app/schedule'))
 
   const onDownload = () => {
     if (!scheduled.length) {
