@@ -59,20 +59,21 @@ export default function Paywall() {
     })
   }
 
-  // Teaser blur: top events crisp, lower events progressively blurred so the
+  // Teaser blur: first few events crisp, rest progressively blurred so the
   // preview *shows* there's a full schedule without giving it away for free.
   const teaserBlurPx = (flatIndex: number): number => {
-    if (flatIndex === 0) return 0
-    if (flatIndex === 1) return 2
-    if (flatIndex === 2) return 4
-    if (flatIndex === 3) return 6
+    if (flatIndex <= 2) return 0
+    if (flatIndex === 3) return 2
+    if (flatIndex === 4) return 4
+    if (flatIndex === 5) return 6
     return 8
   }
   const teaserOpacity = (flatIndex: number): number => {
-    if (flatIndex <= 1) return 1
-    if (flatIndex === 2) return 0.85
-    if (flatIndex === 3) return 0.7
-    return 0.55
+    if (flatIndex <= 2) return 1
+    if (flatIndex === 3) return 0.92
+    if (flatIndex === 4) return 0.78
+    if (flatIndex === 5) return 0.65
+    return 0.5
   }
 
   const scrollRef = useRef<HTMLDivElement>(null)
