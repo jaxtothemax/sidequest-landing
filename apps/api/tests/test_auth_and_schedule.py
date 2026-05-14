@@ -165,12 +165,18 @@ def test_claim_unknown_anon_id_returns_404() -> None:
         _teardown()
 
 
-def test_me_schedule_without_active_curation_returns_404() -> None:
+def test_me_schedule_without_active_curation_returns_empty() -> None:
+    # Users who signed in but haven't curated yet (and have no pins) should
+    # see an empty schedule, not a 404 — otherwise the frontend's pin
+    # overlay machinery never engages and any persisted pins stay invisible.
     _setup()
     try:
         client = TestClient(app)
         r = client.get("/api/me/schedule", headers={"Authorization": "Bearer dummy"})
-        assert r.status_code == 404
+        assert r.status_code == 200
+        body = r.json()
+        assert body["schedule"] == []
+        assert body["conference_id"] is None
     finally:
         _teardown()
 

@@ -66,6 +66,16 @@ export function SchedulePage() {
       queryClient.invalidateQueries({ queryKey: ['events'] })
       queryClient.invalidateQueries({ queryKey: ['me', 'schedule'] })
     },
+    onError: (_err, vars) => {
+      // Server rejected the pin — drop the optimistic override so the UI
+      // snaps back to server truth instead of silently lying until reload.
+      setOverrides((o) => {
+        if (!(vars.id in o)) return o
+        const next = { ...o }
+        delete next[vars.id]
+        return next
+      })
+    },
   })
 
   const toggle = (id: string) => {

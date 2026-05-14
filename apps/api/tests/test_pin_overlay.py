@@ -205,6 +205,41 @@ def test_me_events_lists_only_pinned() -> None:
         _teardown()
 
 
+def test_schedule_serves_pins_without_active_curation() -> None:
+    # Users who pinned events without ever curating (or whose curation
+    # claim failed) used to get a 404 from /api/me/schedule even though
+    # their pins were persisted — making the "persistence is broken"
+    # bug. The endpoint should resolve the conference from the pinned
+    # events and return them.
+    cur = InMemoryCurationsStore()  # no curations seeded
+    pins = InMemoryPinsStore()
+    app.dependency_overrides[get_curations_store] = lambda: cur
+    app.dependency_overrides[get_pins_store] = lambda: pins
+    app.dependency_overrides[require_user] = lambda: CurrentUser(
+        id=USER_ID, email="t@e.com", role=None, raw_claims={"sub": USER_ID}
+    )
+    try:
+        client = TestClient(app)
+        r = client.post(
+            "/api/events/pin",
+            json={"event_id": "t2049-e2", "pinned": True},
+            headers={"Authorization": "Bearer dummy"},
+        )
+        assert r.status_code == 200, r.text
+
+        r = client.get("/api/me/schedule", headers={"Authorization": "Bearer dummy"})
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["conference_id"] == "token2049"
+        ids = [s["id"] for s in body["schedule"]]
+        assert ids == ["t2049-e2"]
+        added = body["schedule"][0]
+        assert added["priority"] == "must"
+        assert "Added by you" in added["rationale"]
+    finally:
+        _teardown()
+
+
 def test_pin_unknown_event_returns_404() -> None:
     _setup_stores()
     try:
