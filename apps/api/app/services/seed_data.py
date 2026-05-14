@@ -25,6 +25,7 @@ CONFERENCES: list[dict] = [
         "start_date": date(2026, 4, 29),
         "end_date": date(2026, 4, 30),
         "timezone": "Asia/Dubai",
+        "is_active": True,
         "meta": {
             "gradient": "linear-gradient(135deg, #FFD072, #E62C5A)",
             "meta_short": "29 Apr – 30 Apr · Madinat Jumeirah",
@@ -39,6 +40,7 @@ CONFERENCES: list[dict] = [
         "start_date": date(2026, 5, 15),
         "end_date": date(2026, 5, 18),
         "timezone": "Asia/Bangkok",
+        "is_active": True,
         "meta": {
             "gradient": "linear-gradient(135deg, #6088F7, #1E4EB0)",
             "meta_short": "15 May – 18 May · QSNCC",
@@ -53,6 +55,7 @@ CONFERENCES: list[dict] = [
         "start_date": date(2026, 6, 10),
         "end_date": date(2026, 6, 13),
         "timezone": "America/Toronto",
+        "is_active": True,
         "meta": {
             "gradient": "linear-gradient(135deg, #FF8C9E, #C61E4A)",
             "meta_short": "10 Jun – 13 Jun · MTCC",

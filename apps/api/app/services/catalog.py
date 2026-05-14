@@ -20,7 +20,7 @@ from app.services import seed_data
 
 
 class CatalogRepo(Protocol):
-    def list_conferences(self) -> list[ConferenceOut]: ...
+    def list_conferences(self, *, include_inactive: bool = False) -> list[ConferenceOut]: ...
     def get_conference(self, conference_id: str) -> ConferenceOut | None: ...
     def list_events(self, conference_id: str) -> list[EventOut]: ...
 
@@ -36,10 +36,11 @@ class InMemoryCatalogRepo:
             if d["conference_id"] == conference_id
         ]
 
-    def list_conferences(self) -> list[ConferenceOut]:
+    def list_conferences(self, *, include_inactive: bool = False) -> list[ConferenceOut]:
         return [
             ConferenceOut(**{**c, "days": self._days_for(c["id"])})
             for c in seed_data.CONFERENCES
+            if include_inactive or c.get("is_active", True)
         ]
 
     def get_conference(self, conference_id: str) -> ConferenceOut | None:
@@ -79,8 +80,11 @@ class SupabaseCatalogRepo:
 
         self._client = create_client(settings.supabase_url, settings.supabase_service_key)
 
-    def list_conferences(self) -> list[ConferenceOut]:
-        confs = self._client.table("conferences").select("*").execute().data or []
+    def list_conferences(self, *, include_inactive: bool = False) -> list[ConferenceOut]:
+        q = self._client.table("conferences").select("*")
+        if not include_inactive:
+            q = q.eq("is_active", True)
+        confs = q.execute().data or []
         days = self._client.table("conference_days").select("*").execute().data or []
         by_conf: dict[str, list[ConferenceDayOut]] = {}
         for d in days:

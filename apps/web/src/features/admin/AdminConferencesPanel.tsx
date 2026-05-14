@@ -1,12 +1,15 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { Plus } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
-  listConferences,
+  listAllConferences,
   upsertAdminConference,
   type AdminConferenceDay,
   type ConferenceFromApi,
 } from '../../api/admin'
+
+const NEW_MARKER = '__new__'
 
 function jsonStringify(meta: Record<string, unknown>): string {
   try {
@@ -16,11 +19,26 @@ function jsonStringify(meta: Record<string, unknown>): string {
   }
 }
 
+function makeBlankConference(): ConferenceFromApi {
+  return {
+    id: '',
+    name: '',
+    city: null,
+    venue: null,
+    start_date: null,
+    end_date: null,
+    timezone: null,
+    is_active: false,
+    meta: {},
+    days: [],
+  }
+}
+
 export function AdminConferencesPanel() {
   const queryClient = useQueryClient()
   const q = useQuery({
     queryKey: ['admin', 'conferences'],
-    queryFn: listConferences,
+    queryFn: listAllConferences,
   })
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -32,10 +50,15 @@ export function AdminConferencesPanel() {
     }
   }, [q.data, selectedId])
 
-  const selected = useMemo(
-    () => q.data?.find((c) => c.id === selectedId) ?? null,
-    [q.data, selectedId],
-  )
+  const selected = useMemo<ConferenceFromApi | null>(() => {
+    if (selectedId === NEW_MARKER) return makeBlankConference()
+    return q.data?.find((c) => c.id === selectedId) ?? null
+  }, [q.data, selectedId])
+
+  const onCreated = (id: string) => {
+    queryClient.invalidateQueries({ queryKey: ['admin', 'conferences'] })
+    setSelectedId(id)
+  }
 
   return (
     <div className="admin__panel admin__panel--two-col">
@@ -49,17 +72,30 @@ export function AdminConferencesPanel() {
             className={`admin__side-item ${c.id === selectedId ? 'is-active' : ''}`}
             onClick={() => setSelectedId(c.id)}
           >
-            <div className="admin__side-name">{c.name}</div>
+            <div className="admin__side-name">
+              {c.name}
+              {!c.is_active && <span className="admin__side-badge">draft</span>}
+            </div>
             <div className="admin__side-meta">{c.id}</div>
           </button>
         ))}
+        <button
+          type="button"
+          className={`admin__side-item admin__side-new ${
+            selectedId === NEW_MARKER ? 'is-active' : ''
+          }`}
+          onClick={() => setSelectedId(NEW_MARKER)}
+        >
+          <Plus size={14} /> New conference
+        </button>
       </aside>
 
       <section className="admin__detail admin-edit-surface">
         {selected ? (
           <ConferenceEditor
             conference={selected}
-            onSaved={() => queryClient.invalidateQueries({ queryKey: ['admin', 'conferences'] })}
+            isCreate={selectedId === NEW_MARKER}
+            onSaved={onCreated}
           />
         ) : (
           <div className="admin__empty">Select a conference to edit.</div>
@@ -71,16 +107,19 @@ export function AdminConferencesPanel() {
 
 function ConferenceEditor(props: {
   conference: ConferenceFromApi
-  onSaved: () => void
+  isCreate: boolean
+  onSaved: (id: string) => void
 }) {
   const c = props.conference
 
+  const [id, setId] = useState(c.id)
   const [name, setName] = useState(c.name)
   const [city, setCity] = useState(c.city ?? '')
   const [venue, setVenue] = useState(c.venue ?? '')
   const [startDate, setStartDate] = useState(c.start_date ?? '')
   const [endDate, setEndDate] = useState(c.end_date ?? '')
   const [timezone, setTimezone] = useState(c.timezone ?? '')
+  const [isActive, setIsActive] = useState(c.is_active)
   const [metaText, setMetaText] = useState(jsonStringify(c.meta))
   const [metaError, setMetaError] = useState<string | null>(null)
   const [days, setDays] = useState<AdminConferenceDay[]>(
@@ -95,12 +134,14 @@ function ConferenceEditor(props: {
 
   useEffect(() => {
     // When the selected conference changes, reset all form fields.
+    setId(c.id)
     setName(c.name)
     setCity(c.city ?? '')
     setVenue(c.venue ?? '')
     setStartDate(c.start_date ?? '')
     setEndDate(c.end_date ?? '')
     setTimezone(c.timezone ?? '')
+    setIsActive(c.is_active)
     setMetaText(jsonStringify(c.meta))
     setMetaError(null)
     setDays(
@@ -112,14 +153,15 @@ function ConferenceEditor(props: {
       })),
     )
     setSaveError(null)
-  }, [c.id]) // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [c.id, props.isCreate])
 
   const mut = useMutation({
     mutationFn: (body: Parameters<typeof upsertAdminConference>[0]) =>
       upsertAdminConference(body),
-    onSuccess: () => {
+    onSuccess: (_data, vars) => {
       setSaveError(null)
-      props.onSaved()
+      props.onSaved(vars.id)
     },
     onError: (e: Error) => setSaveError(e.message),
   })
@@ -134,14 +176,19 @@ function ConferenceEditor(props: {
       setMetaError(`Invalid JSON: ${(err as Error).message}`)
       return
     }
+    if (!id.trim()) {
+      setSaveError('Id is required.')
+      return
+    }
     mut.mutate({
-      id: c.id,
+      id: id.trim(),
       name: name.trim(),
       city: city.trim() || null,
       venue: venue.trim() || null,
       start_date: startDate || null,
       end_date: endDate || null,
       timezone: timezone.trim() || null,
+      is_active: isActive,
       meta: parsedMeta,
       days,
     })
@@ -157,8 +204,15 @@ function ConferenceEditor(props: {
     <form className="admin__form" onSubmit={submit}>
       <div className="admin-drawer__row">
         <label className="admin__field">
-          <span>Id (immutable)</span>
-          <input value={c.id} readOnly disabled />
+          <span>Id {props.isCreate ? '(must be unique)' : '(immutable)'}</span>
+          <input
+            value={id}
+            onChange={(e) => setId(e.target.value)}
+            readOnly={!props.isCreate}
+            disabled={!props.isCreate}
+            placeholder="e.g. devcon7"
+            required
+          />
         </label>
         <label className="admin__field">
           <span>Name</span>
@@ -203,6 +257,22 @@ function ConferenceEditor(props: {
           onChange={(e) => setTimezone(e.target.value)}
           placeholder="Asia/Dubai"
         />
+      </label>
+
+      <label className="admin-toggle">
+        <input
+          type="checkbox"
+          checked={isActive}
+          onChange={(e) => setIsActive(e.target.checked)}
+        />
+        <span className="admin-toggle__label">
+          <strong>Active</strong>
+          <em>
+            {isActive
+              ? 'Visible to users in the conference picker.'
+              : 'Draft / hidden from the public picker.'}
+          </em>
+        </span>
       </label>
 
       <label className="admin__field">
@@ -254,7 +324,11 @@ function ConferenceEditor(props: {
           className="admin-btn admin-btn--primary"
           disabled={mut.isPending}
         >
-          {mut.isPending ? 'Saving…' : 'Save changes'}
+          {mut.isPending
+            ? 'Saving…'
+            : props.isCreate
+              ? 'Create conference'
+              : 'Save changes'}
         </button>
       </div>
     </form>

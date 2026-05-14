@@ -384,6 +384,71 @@
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 
+.admin__side-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  background: var(--surface-subtle, rgba(127, 127, 127, 0.18));
+  opacity: 0.7;
+}
+
+.admin__side-new {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 4px;
+  border: 1px dashed var(--border, rgba(127, 127, 127, 0.3));
+  color: var(--sq-red, #e62c5a);
+}
+
+.admin__side-new:hover {
+  background: var(--surface-active, rgba(230, 44, 90, 0.08));
+}
+
+/* Toggle row (used inside edit surfaces) */
+
+.admin-toggle {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--admin-border, rgba(127, 127, 127, 0.25));
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-toggle input[type="checkbox"] {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--admin-accent, #e62c5a);
+}
+
+.admin-toggle__label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.admin-toggle__label strong {
+  font-weight: 600;
+}
+
+.admin-toggle__label em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--admin-fg-muted, rgba(127, 127, 127, 0.85));
+}
+
 /* ============================================================================
  * EDIT SURFACES — light theme.
  * Applies to the create/edit drawer (.admin-drawer__panel) and the conference

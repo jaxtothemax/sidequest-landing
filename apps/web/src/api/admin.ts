@@ -50,6 +50,7 @@ export type AdminConferenceUpsert = {
   start_date?: string | null
   end_date?: string | null
   timezone?: string | null
+  is_active?: boolean
   meta?: Record<string, unknown>
   days?: AdminConferenceDay[]
 }
@@ -62,12 +63,19 @@ export type ConferenceFromApi = {
   start_date: string | null
   end_date: string | null
   timezone: string | null
+  is_active: boolean
   meta: Record<string, unknown>
   days: { num: number; dow: string; date: string | null; enabled: boolean }[]
 }
 
+/** Public — only active conferences. Used for the user-facing picker. */
 export function listConferences(): Promise<ConferenceFromApi[]> {
   return apiFetch<ConferenceFromApi[]>('/api/conferences')
+}
+
+/** Admin — all conferences including inactive ones. Used by the admin panel. */
+export function listAllConferences(): Promise<ConferenceFromApi[]> {
+  return apiFetch<ConferenceFromApi[]>('/api/admin/conferences')
 }
 
 export function getConference(id: string): Promise<ConferenceFromApi> {

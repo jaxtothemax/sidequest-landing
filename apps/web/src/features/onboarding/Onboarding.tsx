@@ -22,6 +22,7 @@ import { CONFERENCES, type Conference } from '../../data/conferences'
 import { GOALS_BY_ROLE, ROLES, TOPICS } from '../../data/roles'
 import { SUGGESTIONS } from '../../data/suggestions'
 import { curate } from '../../api/curate'
+import { useConferences } from '../../hooks/useConferences'
 import { useOnboarding } from '../../stores/onboardingStore'
 import type { Attendance, OnboardingState, Role } from '../../types'
 
@@ -111,9 +112,14 @@ export default function Onboarding() {
     store.setStep(step)
   }, [step]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const { conferences } = useConferences()
   const conf = useMemo(
-    () => CONFERENCES.find((c) => c.id === state.conferenceId) ?? CONFERENCES[0],
-    [state.conferenceId],
+    () =>
+      conferences.find((c) => c.id === state.conferenceId) ??
+      CONFERENCES.find((c) => c.id === state.conferenceId) ??
+      conferences[0] ??
+      CONFERENCES[0],
+    [conferences, state.conferenceId],
   )
 
   const next = () => setStep((s) => s + 1)
@@ -149,6 +155,7 @@ export default function Onboarding() {
             onChange={(v) => store.set({ conferenceId: v })}
             onBack={back}
             onNext={next}
+            conferences={conferences}
           />
         )}
         {step === 2 && (
@@ -280,11 +287,13 @@ function ConferencePicker({
   onChange,
   onBack,
   onNext,
+  conferences,
 }: {
   value: string
   onChange: (v: string) => void
   onBack: () => void
   onNext: () => void
+  conferences: Conference[]
 }) {
   return (
     <div className="scr">
@@ -292,7 +301,7 @@ function ConferencePicker({
       <div className="scr__step-label">Step 2 of 10</div>
       <h1 className="scr__title">Which conference?</h1>
       <p className="scr__sub">We'll plan around the dates and venue.</p>
-      {CONFERENCES.map((c) => (
+      {conferences.map((c) => (
         <button
           key={c.id}
           className={`conf-card${value === c.id ? ' active' : ''}`}

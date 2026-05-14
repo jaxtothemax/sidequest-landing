@@ -10,11 +10,22 @@ from app.models.schemas import (
     AdminEventCreate,
     AdminEventOut,
     AdminEventUpdate,
+    ConferenceOut,
     LockRequest,
 )
 from app.services.admin_repo import EventsAdminRepo, get_events_admin_repo
+from app.services.catalog import CatalogRepo, get_catalog_repo
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+
+@router.get("/conferences", response_model=list[ConferenceOut])
+def list_all_conferences(
+    admin: Annotated[CurrentUser, Depends(require_admin)],
+    repo: Annotated[CatalogRepo, Depends(get_catalog_repo)],
+) -> list[ConferenceOut]:
+    """List ALL conferences (active + inactive). Public /api/conferences stays active-only."""
+    return repo.list_conferences(include_inactive=True)
 
 
 def _to_out(row: dict) -> AdminEventOut:

@@ -23,6 +23,7 @@ class ConferenceOut(BaseModel):
     start_date: date_t | None = None
     end_date: date_t | None = None
     timezone: str | None = None
+    is_active: bool = True
     meta: dict[str, Any] = Field(default_factory=dict)
     days: list[ConferenceDayOut] = Field(default_factory=list)
 
@@ -223,6 +224,7 @@ class AdminConferenceUpsert(BaseModel):
     start_date: date_t | None = None
     end_date: date_t | None = None
     timezone: str | None = None
+    is_active: bool = True
     meta: dict[str, Any] = Field(default_factory=dict)
     days: list[AdminConferenceDay] | None = None
 
