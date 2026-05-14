@@ -4,13 +4,21 @@ import { useNavigate } from 'react-router-dom'
 
 import { EventCard } from '../../components/EventCard'
 import type { SeedEvent } from '../../data/seedEvents'
+import { useConferences } from '../../hooks/useConferences'
 import { useEvents } from '../../hooks/useEvents'
+import { exportSchedulePdf } from '../../lib/exportSchedulePdf'
 import { useOnboarding } from '../../stores/onboardingStore'
 
 export default function PaywallThanks() {
   const navigate = useNavigate()
   const { events } = useEvents()
   const curatedSchedule = useOnboarding((s) => s.curatedSchedule)
+  const conferenceId = useOnboarding((s) => s.state.conferenceId)
+  const { conferences } = useConferences()
+  const conference = useMemo(
+    () => conferences.find((c) => c.id === conferenceId) ?? conferences[0] ?? null,
+    [conferences, conferenceId],
+  )
 
   // Show the user's actual curated schedule, fully unblurred. Falls back to
   // a small preview from the catalog if there's no curation in the store yet.
@@ -48,10 +56,21 @@ export default function PaywallThanks() {
     navigate('/auth?next=' + encodeURIComponent('/app/schedule'))
 
   const onDownload = () => {
-    // Placeholder. Wire to real export (PDF / .ics) when payment is real.
-    alert(
-      'TODO: Download is not implemented yet. Once payment is live, this will export your schedule as PDF and .ics calendar.',
-    )
+    if (!scheduled.length) {
+      alert('No events in your schedule to export yet.')
+      return
+    }
+    try {
+      exportSchedulePdf({
+        conferenceName: conference?.name ?? 'Your conference',
+        conferenceMeta: conference?.meta ?? null,
+        events: scheduled,
+      })
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('PDF export failed:', err)
+      alert('PDF export failed — check console for details.')
+    }
   }
 
   return (
