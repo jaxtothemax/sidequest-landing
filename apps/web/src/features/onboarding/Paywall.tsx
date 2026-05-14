@@ -95,7 +95,7 @@ export default function Paywall() {
     })
   }
 
-  const onUnlock = () => navigate('/app/chat')
+  const onPay = () => navigate('/paywall/thanks')
 
   return (
     <div className="sq-app">
@@ -155,7 +155,7 @@ export default function Paywall() {
             </div>
           </div>
 
-          <div className="paywall__sheet" onClick={onUnlock}>
+          <div className="paywall__sheet">
             <div className="paywall__handle" />
             <div className="paywall__brand">
               <span className="paywall__lock">
@@ -192,7 +192,7 @@ export default function Paywall() {
               <span className="paywall__amount">9.99</span>
             </div>
             <div className="paywall__price-sub">One-time · Lifetime access for this conference</div>
-            <button className="paywall__cta" type="button">
+            <button className="paywall__cta" type="button" onClick={onPay}>
               <svg
                 width="16"
                 height="20"
@@ -209,7 +209,7 @@ export default function Paywall() {
                 Buy with&nbsp;<span className="paywall__cta-pay">Pay</span>
               </span>
             </button>
-            <button className="paywall__alt" type="button">
+            <button className="paywall__alt" type="button" onClick={onPay}>
               Other payment methods
             </button>
             <div className="paywall__footer">

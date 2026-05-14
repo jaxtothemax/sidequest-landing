@@ -8,6 +8,7 @@ const AuthScreen = lazy(() => import('./features/auth/AuthScreen'))
 const AuthCallback = lazy(() => import('./features/auth/AuthCallback'))
 const Onboarding = lazy(() => import('./features/onboarding/Onboarding'))
 const Paywall = lazy(() => import('./features/onboarding/Paywall'))
+const PaywallThanks = lazy(() => import('./features/onboarding/PaywallThanks'))
 const MainApp = lazy(() => import('./features/mainapp/MainApp'))
 const Admin = lazy(() => import('./features/admin/Admin'))
 
@@ -17,6 +18,7 @@ export function Router() {
       <Route path="/" element={<Onboarding />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/paywall" element={<Paywall />} />
+      <Route path="/paywall/thanks" element={<PaywallThanks />} />
       <Route path="/auth" element={<AuthScreen />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route
