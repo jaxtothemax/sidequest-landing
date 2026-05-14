@@ -10,8 +10,7 @@ export default function Admin() {
   const [tab, setTab] = useState<Tab>('events')
 
   return (
-    <div className="admin-shell">
-      <div className="admin">
+    <div className="admin">
       <header className="admin__header">
         <div>
           <h1 className="admin__title">SideQuest admin</h1>
@@ -39,7 +38,6 @@ export default function Admin() {
 
       {tab === 'events' && <AdminEventsPanel />}
       {tab === 'conferences' && <AdminConferencesPanel />}
-      </div>
     </div>
   )
 }

@@ -55,7 +55,7 @@ export function AdminConferencesPanel() {
         ))}
       </aside>
 
-      <section className="admin__detail">
+      <section className="admin__detail admin-edit-surface">
         {selected ? (
           <ConferenceEditor
             conference={selected}

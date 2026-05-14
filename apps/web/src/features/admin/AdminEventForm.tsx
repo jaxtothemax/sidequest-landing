@@ -111,7 +111,7 @@ export function AdminEventForm(props: Props) {
   return (
     <div className="admin-drawer">
       <div className="admin-drawer__backdrop" onClick={props.onCancel} />
-      <form className="admin-drawer__panel" onSubmit={submit}>
+      <form className="admin-drawer__panel admin-edit-surface" onSubmit={submit}>
         <header className="admin-drawer__head">
           <h2>{isCreate ? 'New event' : 'Edit event'}</h2>
           <button
