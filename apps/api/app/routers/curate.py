@@ -1,97 +1,65 @@
 from __future__ import annotations
 
-import json
+import uuid
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.deps import UserClaims, get_supabase, verify_jwt
-from app.models import CurateRequest, CurateResponse, CuratedItem, EventDTO
-from app.services import openrouter
-from app.services.prompts import CURATE_SYSTEM
+from app.models.schemas import CurateRequest, CurateResponse
+from app.services.catalog import CatalogRepo, get_catalog_repo
+from app.services.curate import curate_schedule
+from app.services.curations_store import CurationsStore, get_curations_store
+from app.services.llm import LLMClient, get_llm_client
 
-router = APIRouter()
+router = APIRouter(prefix="/api", tags=["curate"])
+
+
+def _normalise_anon_id(raw: str) -> str:
+    try:
+        return str(uuid.UUID(raw))
+    except (ValueError, AttributeError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="anon_id must be a UUID",
+        ) from e
 
 
 @router.post("/curate", response_model=CurateResponse)
-async def curate(body: CurateRequest, user: UserClaims = Depends(verify_jwt)) -> CurateResponse:
-    # 1. Pull the relevant event catalogue.
-    try:
-        sb = get_supabase()
-        catalogue_rows = (
-            sb.table("events")
-            .select("*")
-            .eq("conference_id", body.onboarding.conference_id)
-            .execute()
-            .data
-            or []
-        )
-    except HTTPException:
-        catalogue_rows = []
+async def curate(
+    body: CurateRequest,
+    repo: Annotated[CatalogRepo, Depends(get_catalog_repo)],
+    store: Annotated[CurationsStore, Depends(get_curations_store)],
+    llm: Annotated[LLMClient, Depends(get_llm_client)],
+) -> CurateResponse:
+    anon_id = _normalise_anon_id(body.anon_id)
 
-    catalogue = [EventDTO(**row) for row in catalogue_rows]
-
-    if not catalogue:
-        # Cold start before scraper has run — return empty schedule so the UI degrades gracefully.
-        return CurateResponse(schedule=[], tokens_used=0)
-
-    # 2. Ask the LLM for a curated subset.
-    user_payload = {
-        "onboarding": body.onboarding.model_dump(by_alias=True),
-        "catalogue": [e.model_dump(mode="json") for e in catalogue],
-    }
-
-    try:
-        result = await openrouter.complete(
-            messages=[
-                {"role": "system", "content": CURATE_SYSTEM},
-                {"role": "user", "content": json.dumps(user_payload, default=str)},
-            ],
-            model=body.model,
-            response_format={"type": "json_object"},
-            temperature=0.3,
-            max_tokens=2500,
-        )
-    except HTTPException:
-        raise
-    except Exception as exc:  # noqa: BLE001
+    conference = repo.get_conference(body.onboarding.conferenceId)
+    if conference is None:
         raise HTTPException(
-            status.HTTP_502_BAD_GATEWAY, f"OpenRouter error: {exc}"
-        ) from exc
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"conference '{body.onboarding.conferenceId}' not found",
+        )
+    events = repo.list_events(body.onboarding.conferenceId)
 
-    content = result.get("choices", [{}])[0].get("message", {}).get("content", "{}")
-    tokens_used = result.get("usage", {}).get("total_tokens", 0)
+    schedule, llm_result = await curate_schedule(
+        onboarding=body.onboarding,
+        conference=conference,
+        events=events,
+        llm=llm,
+        model=body.model,
+    )
 
-    try:
-        parsed = json.loads(content)
-    except json.JSONDecodeError:
-        raise HTTPException(
-            status.HTTP_502_BAD_GATEWAY, "LLM returned non-JSON response"
-        ) from None
+    store.save_anonymous(
+        anon_id=anon_id,
+        conference_id=conference.id,
+        onboarding=body.onboarding.model_dump(),
+        schedule=[item.model_dump() for item in schedule],
+        tokens_used=llm_result.tokens_used,
+        model=llm_result.model,
+    )
 
-    schedule_raw = parsed.get("schedule", [])
-    valid_ids = {e.id for e in catalogue}
-    schedule = [
-        CuratedItem(**item) for item in schedule_raw if item.get("event_id") in valid_ids
-    ]
-
-    # 3. Persist the picks as pins.
-    if schedule:
-        try:
-            sb = get_supabase()
-            sb.table("user_events").upsert(
-                [
-                    {
-                        "user_id": user.sub,
-                        "event_id": item.event_id,
-                        "pinned": True,
-                        "priority": item.priority,
-                        "rationale": item.rationale,
-                    }
-                    for item in schedule
-                ],
-                on_conflict="user_id,event_id",
-            ).execute()
-        except HTTPException:
-            pass  # supabase not configured in early dev
-
-    return CurateResponse(schedule=schedule, tokens_used=tokens_used)
+    return CurateResponse(
+        curate_id=anon_id,
+        schedule=schedule,
+        tokens_used=llm_result.tokens_used,
+    )

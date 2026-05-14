@@ -1,0 +1,889 @@
+/*
+ * Admin area styling.
+ *
+ * The list pages (events table, conferences sidebar, filters, header) follow
+ * the host design system — they look the same as the rest of the app (dark on
+ * the user's setup).
+ *
+ * The *editing surfaces* (drawer for new/edit event, conference detail editor)
+ * use a dedicated light theme via the `.admin-edit-surface` class. Editors
+ * expect a familiar CMS feel: white backgrounds, dark text, light borders.
+ */
+
+.admin {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-6) var(--space-12);
+  font-family: var(--font-body, system-ui, sans-serif);
+}
+
+.admin__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--space-6);
+}
+
+.admin__title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.admin__sub {
+  opacity: 0.6;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.admin__exit {
+  font-size: 14px;
+  opacity: 0.8;
+  text-decoration: none;
+  color: inherit;
+  padding: 8px 12px;
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.3));
+  border-radius: var(--radius-md, 8px);
+}
+
+.admin__exit:hover {
+  opacity: 1;
+  background: var(--surface-hover, rgba(127, 127, 127, 0.08));
+}
+
+/* Tabs */
+
+.admin__tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border, rgba(127, 127, 127, 0.2));
+  margin-bottom: var(--space-5);
+}
+
+.admin__tab {
+  background: transparent;
+  border: 0;
+  padding: 10px 16px;
+  font: inherit;
+  font-weight: 500;
+  color: inherit;
+  opacity: 0.55;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.admin__tab:hover {
+  opacity: 0.85;
+}
+
+.admin__tab.is-active {
+  opacity: 1;
+  border-bottom-color: var(--sq-red, #e62c5a);
+}
+
+/* Panel layout */
+
+.admin__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.admin__filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.admin__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.admin__field--grow {
+  flex-grow: 1;
+  min-width: 220px;
+}
+
+.admin__field span {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* Inputs in the LISTING surfaces (filter row) — keep using host tokens. */
+
+.admin__field select,
+.admin__field input,
+.admin__field textarea {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--border-default, rgba(127, 127, 127, 0.3));
+  background: var(--bg-canvas, #fff);
+  color: var(--fg-default, #111);
+  border-radius: var(--radius-md, 8px);
+  min-width: 140px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin__field select:focus,
+.admin__field input:focus,
+.admin__field textarea:focus {
+  border-color: var(--sq-red, #e62c5a);
+  box-shadow: 0 0 0 3px rgba(230, 44, 90, 0.15);
+}
+
+.admin__field input::placeholder,
+.admin__field textarea::placeholder {
+  color: var(--fg-subtle, rgba(127, 127, 127, 0.55));
+}
+
+.admin__field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Tables (listing) */
+
+.admin__count {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.admin__table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.2));
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+}
+
+.admin__row {
+  display: grid;
+  grid-template-columns: 2fr 1.1fr 1.4fr 1.4fr 1fr auto;
+  gap: 12px;
+  padding: 12px 16px;
+  align-items: center;
+  border-bottom: 1px solid var(--border, rgba(127, 127, 127, 0.12));
+  font-size: 13px;
+}
+
+.admin__row:last-child {
+  border-bottom: 0;
+}
+
+.admin__row--head {
+  background: var(--surface-subtle, rgba(127, 127, 127, 0.04));
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.admin__cell-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.admin__row-title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin__row-id {
+  font-family: var(--font-mono, ui-monospace, "JetBrains Mono", monospace);
+  font-size: 11px;
+  opacity: 0.55;
+}
+
+/* Tags + flag chips (listing) */
+
+.admin__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.admin__tag {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-subtle, rgba(127, 127, 127, 0.1));
+}
+
+.admin__flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.admin__flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid currentColor;
+  opacity: 0.85;
+}
+
+.admin__flag--manual {
+  color: var(--sq-blue, #3b82f6);
+}
+
+.admin__flag--locked {
+  color: var(--sq-red, #e62c5a);
+}
+
+.admin__flag--unlocked {
+  color: var(--fg-muted, rgba(127, 127, 127, 0.8));
+}
+
+.admin__empty,
+.admin__placeholder {
+  padding: 32px;
+  text-align: center;
+  opacity: 0.55;
+  font-size: 14px;
+}
+
+.admin__error {
+  color: var(--sq-red, #e62c5a);
+  font-size: 13px;
+  padding: 8px;
+}
+
+/* Row actions */
+
+.admin__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.admin__actions-head {
+  text-align: right;
+}
+
+/* Buttons */
+
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.3));
+  background: var(--surface, transparent);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.admin-btn:hover:not(:disabled) {
+  background: var(--surface-hover, rgba(127, 127, 127, 0.08));
+}
+
+.admin-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-btn--primary {
+  background: var(--sq-red, #e62c5a);
+  color: white;
+  border-color: transparent;
+}
+
+.admin-btn--primary:hover:not(:disabled) {
+  background: var(--sq-red-soft, #ff5478);
+}
+
+.admin-btn--icon {
+  padding: 6px;
+}
+
+.admin-btn--danger {
+  color: var(--sq-red, #e62c5a);
+}
+
+.admin-btn--danger:hover:not(:disabled) {
+  background: rgba(230, 44, 90, 0.08);
+}
+
+/* Conferences sidebar list (listing — host theme) */
+
+.admin__panel--two-col {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.admin__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.2));
+  border-radius: var(--radius-md, 8px);
+  padding: 8px;
+}
+
+.admin__sidebar-head {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+  padding: 4px 8px 8px;
+}
+
+.admin__side-item {
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md, 6px);
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin__side-item:hover {
+  background: var(--surface-hover, rgba(127, 127, 127, 0.08));
+}
+
+.admin__side-item.is-active {
+  background: var(--surface-active, rgba(230, 44, 90, 0.08));
+  color: var(--sq-red, #e62c5a);
+}
+
+.admin__side-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.admin__side-meta {
+  font-size: 11px;
+  opacity: 0.55;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.admin__side-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  background: var(--surface-subtle, rgba(127, 127, 127, 0.18));
+  opacity: 0.7;
+}
+
+.admin__side-new {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 4px;
+  border: 1px dashed var(--border, rgba(127, 127, 127, 0.3));
+  color: var(--sq-red, #e62c5a);
+}
+
+.admin__side-new:hover {
+  background: var(--surface-active, rgba(230, 44, 90, 0.08));
+}
+
+/* Toggle row (used inside edit surfaces) */
+
+.admin-toggle {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid var(--admin-border, rgba(127, 127, 127, 0.25));
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.admin-toggle input[type="checkbox"] {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--admin-accent, #e62c5a);
+}
+
+.admin-toggle__label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.admin-toggle__label strong {
+  font-weight: 600;
+}
+
+.admin-toggle__label em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--admin-fg-muted, rgba(127, 127, 127, 0.85));
+}
+
+/* Scrape sources */
+
+.admin-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: var(--space-4, 16px);
+  margin-top: var(--space-4, 16px);
+  border-top: 1px solid var(--admin-border, rgba(127, 127, 127, 0.25));
+}
+
+.admin-sources__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-sources__title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-sources__sub {
+  font-size: 12px;
+  color: var(--admin-fg-muted, #5b6470);
+  margin-top: 2px;
+}
+
+.admin-sources__run {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--admin-accent-soft, rgba(230, 44, 90, 0.08));
+  color: var(--admin-fg, #111418);
+  border: 1px solid var(--admin-accent-soft, rgba(230, 44, 90, 0.18));
+}
+
+.admin-sources__run.is-error {
+  color: var(--admin-danger, #d92443);
+  border-color: var(--admin-danger, #d92443);
+  background: rgba(217, 36, 67, 0.06);
+}
+
+.admin-sources__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-sources__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-border, rgba(127, 127, 127, 0.25));
+  border-radius: 8px;
+  background: var(--admin-bg, #fff);
+}
+
+.admin-sources__row.is-off {
+  opacity: 0.55;
+}
+
+.admin-sources__row-main {
+  min-width: 0;
+}
+
+.admin-sources__url {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--admin-accent, #e62c5a);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.admin-sources__url:hover {
+  text-decoration: underline;
+}
+
+.admin-sources__meta {
+  font-size: 11px;
+  color: var(--admin-fg-muted, #5b6470);
+  margin-top: 2px;
+}
+
+.admin-sources__hint {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: help;
+}
+
+.admin-sources__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--admin-fg-muted, #5b6470);
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-sources__toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--admin-accent, #e62c5a);
+  margin: 0;
+}
+
+.admin-sources__add {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-sources__add input[type="url"] {
+  flex: 1;
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--admin-border-strong, #cdd2d8);
+  background: var(--admin-bg-input, #fff);
+  color: var(--admin-fg, #111);
+  border-radius: 8px;
+  outline: none;
+}
+
+.admin-sources__add input[type="url"]:focus {
+  border-color: var(--admin-accent, #e62c5a);
+  box-shadow: 0 0 0 3px var(--admin-accent-soft, rgba(230, 44, 90, 0.15));
+}
+
+.admin-sources__empty {
+  font-size: 12px;
+  color: var(--admin-fg-muted, #5b6470);
+  padding: 12px;
+  text-align: center;
+  border: 1px dashed var(--admin-border, rgba(127, 127, 127, 0.25));
+  border-radius: 8px;
+}
+
+.admin-sources__schedule {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--admin-bg-muted, #f6f7f9);
+  font-size: 12px;
+  color: var(--admin-fg-muted, #5b6470);
+}
+
+.admin-sources__schedule-label {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--admin-fg, #111);
+}
+
+.admin-sources__pill {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--admin-accent-soft, rgba(230, 44, 90, 0.08));
+  color: var(--admin-accent, #e62c5a);
+  font-weight: 500;
+}
+
+.admin-sources__schedule-hint {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ============================================================================
+ * EDIT SURFACES — light theme.
+ * Applies to the create/edit drawer (.admin-drawer__panel) and the conference
+ * detail editor (.admin__detail). Anything inside these containers gets the
+ * --admin-* tokens.
+ * ============================================================================ */
+
+.admin-edit-surface {
+  --admin-bg:           #ffffff;
+  --admin-bg-muted:     #f6f7f9;
+  --admin-bg-input:     #ffffff;
+  --admin-fg:           #111418;
+  --admin-fg-muted:     #5b6470;
+  --admin-fg-subtle:    #8b96a3;
+  --admin-border:       #e3e6ea;
+  --admin-border-strong:#cdd2d8;
+  --admin-accent:       #e62c5a;
+  --admin-accent-soft:  rgba(230, 44, 90, 0.08);
+  --admin-danger:       #d92443;
+
+  background: var(--admin-bg);
+  color: var(--admin-fg);
+}
+
+/* Field labels + spans inside edit surface */
+.admin-edit-surface .admin__field {
+  color: var(--admin-fg);
+  opacity: 1;
+}
+
+.admin-edit-surface .admin__field span {
+  color: var(--admin-fg-muted);
+  opacity: 1;
+}
+
+/* Inputs inside edit surface */
+.admin-edit-surface .admin__field select,
+.admin-edit-surface .admin__field input,
+.admin-edit-surface .admin__field textarea {
+  background: var(--admin-bg-input);
+  color: var(--admin-fg);
+  border-color: var(--admin-border-strong);
+}
+
+.admin-edit-surface .admin__field select:focus,
+.admin-edit-surface .admin__field input:focus,
+.admin-edit-surface .admin__field textarea:focus {
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 3px var(--admin-accent-soft);
+}
+
+.admin-edit-surface .admin__field input::placeholder,
+.admin-edit-surface .admin__field textarea::placeholder {
+  color: var(--admin-fg-subtle);
+}
+
+.admin-edit-surface .admin__field input[disabled],
+.admin-edit-surface .admin__field input[readonly] {
+  background: var(--admin-bg-muted);
+  color: var(--admin-fg-muted);
+  cursor: not-allowed;
+}
+
+/* Buttons inside edit surface */
+.admin-edit-surface .admin-btn {
+  background: var(--admin-bg);
+  color: var(--admin-fg);
+  border-color: var(--admin-border-strong);
+}
+
+.admin-edit-surface .admin-btn:hover:not(:disabled) {
+  background: var(--admin-bg-muted);
+  border-color: var(--admin-fg-subtle);
+}
+
+.admin-edit-surface .admin-btn--primary {
+  background: var(--admin-accent);
+  color: #ffffff;
+  border-color: var(--admin-accent);
+}
+
+.admin-edit-surface .admin-btn--primary:hover:not(:disabled) {
+  background: var(--admin-danger);
+  border-color: var(--admin-danger);
+}
+
+.admin-edit-surface .admin-btn--danger {
+  color: var(--admin-danger);
+}
+
+.admin-edit-surface .admin-btn--danger:hover:not(:disabled) {
+  background: var(--admin-accent-soft);
+  border-color: var(--admin-danger);
+}
+
+.admin-edit-surface .admin__error {
+  color: var(--admin-danger);
+}
+
+/* Day chips (only relevant inside the conference detail editor) */
+.admin-edit-surface .admin__day-chip {
+  background: var(--admin-bg);
+  color: var(--admin-fg);
+  border-color: var(--admin-border-strong);
+}
+
+.admin-edit-surface .admin__day-chip.is-on {
+  background: var(--admin-accent-soft);
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
+}
+
+.admin-edit-surface .admin__days-head {
+  color: var(--admin-fg-muted);
+}
+
+.admin-edit-surface .admin__days-hint,
+.admin-edit-surface .admin__days-empty {
+  color: var(--admin-fg-subtle);
+}
+
+/* Drawer */
+
+.admin-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.admin-drawer__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 20, 24, 0.5);
+}
+
+.admin-drawer__panel {
+  position: relative;
+  width: min(480px, 100vw);
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: -16px 0 32px rgba(17, 20, 24, 0.18);
+}
+
+.admin-drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+}
+
+.admin-drawer__head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.admin-drawer__close {
+  background: transparent;
+  border: 0;
+  color: var(--admin-fg-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-md, 8px);
+}
+
+.admin-drawer__close:hover {
+  background: var(--admin-bg-muted);
+  color: var(--admin-fg);
+}
+
+.admin-drawer__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.admin-drawer__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--admin-border);
+}
+
+/* Conference detail editor */
+
+.admin__detail {
+  border: 1px solid var(--admin-border);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-5);
+}
+
+.admin__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.admin__days {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin__days-head {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-weight: 500;
+}
+
+.admin__days-hint {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+}
+
+.admin__days-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin__day-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.3));
+  border-radius: var(--radius-pill, 999px);
+  padding: 6px 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin__day-chip input {
+  margin: 0;
+}
+
+.admin__day-num {
+  font-weight: 600;
+}
+
+.admin__days-empty {
+  font-size: 12px;
+}

@@ -22,6 +22,7 @@ import { CONFERENCES, type Conference } from '../../data/conferences'
 import { GOALS_BY_ROLE, ROLES, TOPICS } from '../../data/roles'
 import { SUGGESTIONS } from '../../data/suggestions'
 import { curate } from '../../api/curate'
+import { useConferences } from '../../hooks/useConferences'
 import { useOnboarding } from '../../stores/onboardingStore'
 import type { Attendance, OnboardingState, Role } from '../../types'
 
@@ -111,9 +112,14 @@ export default function Onboarding() {
     store.setStep(step)
   }, [step]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const { conferences } = useConferences()
   const conf = useMemo(
-    () => CONFERENCES.find((c) => c.id === state.conferenceId) ?? CONFERENCES[0],
-    [state.conferenceId],
+    () =>
+      conferences.find((c) => c.id === state.conferenceId) ??
+      CONFERENCES.find((c) => c.id === state.conferenceId) ??
+      conferences[0] ??
+      CONFERENCES[0],
+    [conferences, state.conferenceId],
   )
 
   const next = () => setStep((s) => s + 1)
@@ -123,6 +129,9 @@ export default function Onboarding() {
 
   const curateMutation = useMutation({
     mutationFn: (s: OnboardingState) => curate(s),
+    onSuccess: (data) => {
+      store.setCurated(data.curate_id, data.schedule)
+    },
   })
 
   // Fire curation when entering the loading screen (step 11).
@@ -146,6 +155,7 @@ export default function Onboarding() {
             onChange={(v) => store.set({ conferenceId: v })}
             onBack={back}
             onNext={next}
+            conferences={conferences}
           />
         )}
         {step === 2 && (
@@ -169,7 +179,7 @@ export default function Onboarding() {
         {step === 4 && (
           <RoleStep
             value={state.role}
-            onChange={(v) => store.set({ role: v })}
+            onChange={(v) => store.set({ role: v, goals: [] })}
             onBack={back}
             onNext={next}
           />
@@ -277,11 +287,13 @@ function ConferencePicker({
   onChange,
   onBack,
   onNext,
+  conferences,
 }: {
   value: string
   onChange: (v: string) => void
   onBack: () => void
   onNext: () => void
+  conferences: Conference[]
 }) {
   return (
     <div className="scr">
@@ -289,7 +301,7 @@ function ConferencePicker({
       <div className="scr__step-label">Step 2 of 10</div>
       <h1 className="scr__title">Which conference?</h1>
       <p className="scr__sub">We'll plan around the dates and venue.</p>
-      {CONFERENCES.map((c) => (
+      {conferences.map((c) => (
         <button
           key={c.id}
           className={`conf-card${value === c.id ? ' active' : ''}`}
@@ -510,11 +522,19 @@ function GoalsStep({
 }) {
   const goals = role ? GOALS_BY_ROLE[role] : GOALS_BY_ROLE.founder
   const roleLabel = role ? ROLES.find((r) => r.id === role)!.label : 'you'
+  // Self-heal: drop any persisted goal ids that don't belong to the current
+  // role's goal list (happens when role was changed without clearing goals
+  // in older builds).
+  const validIds = useMemo(() => new Set(goals.map((g) => g.id)), [goals])
+  const filtered = useMemo(() => value.filter((id) => validIds.has(id)), [value, validIds])
+  useEffect(() => {
+    if (filtered.length !== value.length) onChange(filtered)
+  }, [filtered, value, onChange])
   const toggle = (id: string) => {
-    if (value.includes(id)) {
-      onChange(value.filter((x) => x !== id))
-    } else if (value.length < 3) {
-      onChange([...value, id])
+    if (filtered.includes(id)) {
+      onChange(filtered.filter((x) => x !== id))
+    } else if (filtered.length < 3) {
+      onChange([...filtered, id])
     }
   }
   return (
@@ -525,7 +545,7 @@ function GoalsStep({
       <p className="scr__sub">Pick up to 3 — order matters, top one weighs most.</p>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
         {goals.map((g) => {
-          const idx = value.indexOf(g.id)
+          const idx = filtered.indexOf(g.id)
           const active = idx >= 0
           return (
             <button
@@ -533,7 +553,6 @@ function GoalsStep({
               className={`opt opt--vertical${active ? ' active' : ''}`}
               onClick={() => toggle(g.id)}
             >
-              {active && <div className="opt__rank">{idx + 1}</div>}
               <div className="opt__icon">{g.emoji}</div>
               <div>
                 <div className="opt__title">{g.label}</div>
@@ -544,10 +563,10 @@ function GoalsStep({
         })}
       </div>
       <div style={{ fontSize: 12, color: 'var(--fg-muted)', textAlign: 'center' }}>
-        {value.length} of 3 selected
+        {filtered.length} of 3 selected
       </div>
       <div className="scr__cta">
-        <button className="btn-primary" disabled={value.length === 0} onClick={onNext}>
+        <button className="btn-primary" disabled={filtered.length === 0} onClick={onNext}>
           Continue
         </button>
       </div>

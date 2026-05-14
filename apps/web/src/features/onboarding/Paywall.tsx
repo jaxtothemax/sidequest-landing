@@ -1,20 +1,80 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Check, Lock, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import SymbolSVG from '../../assets/Symbol.svg'
 import { EventCard } from '../../components/EventCard'
+import type { SeedEvent } from '../../data/seedEvents'
 import { useEvents } from '../../hooks/useEvents'
+import { useOnboarding } from '../../stores/onboardingStore'
+
+const FALLBACK_PREVIEW_LIMIT = 6
 
 export default function Paywall() {
   const navigate = useNavigate()
-  const { events } = useEvents('token2049-dubai-2026')
+  const { events } = useEvents()
+  const curatedSchedule = useOnboarding((s) => s.curatedSchedule)
 
-  const scheduled = events
-    .filter((e) => e.inSchedule)
-    .sort((a, b) => a.day - b.day || a.start.localeCompare(b.start))
-  const wed = scheduled.filter((e) => e.day === 29)
-  const thu = scheduled.filter((e) => e.day === 30)
+  // Build the schedule preview shown on the left:
+  // - If the LLM curated a schedule, show those events.
+  // - Else show the first N events of the active conference as a basic
+  //   teaser, so the paywall always has content.
+  const scheduled: SeedEvent[] = useMemo(() => {
+    const sortByStart = (a: SeedEvent, b: SeedEvent) =>
+      a.day - b.day || a.start.localeCompare(b.start)
+
+    const curatedIds = new Set((curatedSchedule ?? []).map((c) => c.event_id))
+    if (curatedIds.size) {
+      return events
+        .filter((e) => curatedIds.has(e.id))
+        .map((e) => ({ ...e, inSchedule: true }))
+        .sort(sortByStart)
+    }
+    return events
+      .slice()
+      .sort(sortByStart)
+      .slice(0, FALLBACK_PREVIEW_LIMIT)
+      .map((e) => ({ ...e, inSchedule: true }))
+  }, [events, curatedSchedule])
+
+  // Group preview events by their day-of-month so the rendering works for any
+  // conference (not just hardcoded April 29/30).
+  const grouped = useMemo(() => {
+    const map = new Map<number, SeedEvent[]>()
+    for (const e of scheduled) {
+      const arr = map.get(e.day) ?? []
+      arr.push(e)
+      map.set(e.day, arr)
+    }
+    return Array.from(map.entries()).sort(([a], [b]) => a - b)
+  }, [scheduled])
+
+  const dayLabel = (firstStart: string, day: number) => {
+    const d = new Date(firstStart)
+    if (Number.isNaN(d.getTime())) return `Day ${day}`
+    return d.toLocaleDateString(undefined, {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    })
+  }
+
+  // Teaser blur: first few events crisp, rest progressively blurred so the
+  // preview *shows* there's a full schedule without giving it away for free.
+  const teaserBlurPx = (flatIndex: number): number => {
+    if (flatIndex <= 2) return 0
+    if (flatIndex === 3) return 2
+    if (flatIndex === 4) return 4
+    if (flatIndex === 5) return 6
+    return 8
+  }
+  const teaserOpacity = (flatIndex: number): number => {
+    if (flatIndex <= 2) return 1
+    if (flatIndex === 3) return 0.92
+    if (flatIndex === 4) return 0.78
+    if (flatIndex === 5) return 0.65
+    return 0.5
+  }
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0)
@@ -35,7 +95,7 @@ export default function Paywall() {
     })
   }
 
-  const onUnlock = () => navigate('/app/chat')
+  const onPay = () => navigate('/paywall/thanks')
 
   return (
     <div className="sq-app">
@@ -49,38 +109,53 @@ export default function Paywall() {
                 opacity: 1 - progress * 0.3,
               }}
             >
-              {wed.length > 0 && (
-                <>
-                  <div className="paywall__day">
-                    <span className="paywall__day-dot" />
-                    Wednesday, April 29 · {wed.length} events
-                  </div>
-                  <h1 className="paywall__schedule-title">Your schedule</h1>
-                  <div className="paywall__events">
-                    {wed.map((e) => (
-                      <EventCard key={e.id} event={e} />
-                    ))}
-                  </div>
-                </>
+              <h1 className="paywall__schedule-title">Your schedule</h1>
+              {grouped.length === 0 && (
+                <div className="paywall__day paywall__day--secondary">
+                  Loading your preview…
+                </div>
               )}
-              {thu.length > 0 && (
-                <>
-                  <div className="paywall__day paywall__day--secondary">
-                    <span className="paywall__day-dot" />
-                    Thursday, April 30 · {thu.length} events
+              {(() => {
+                let flat = -1
+                return grouped.map(([day, items], i) => (
+                  <div key={day}>
+                    <div
+                      className={`paywall__day${i > 0 ? ' paywall__day--secondary' : ''}`}
+                    >
+                      <span className="paywall__day-dot" />
+                      {dayLabel(items[0].start, day)} · {items.length} event
+                      {items.length === 1 ? '' : 's'}
+                    </div>
+                    <div className="paywall__events">
+                      {items.map((e) => {
+                        flat += 1
+                        const blur = teaserBlurPx(flat)
+                        const opacity = teaserOpacity(flat)
+                        return (
+                          <div
+                            key={e.id}
+                            className="paywall__event-wrap"
+                            style={{
+                              filter: blur ? `blur(${blur}px)` : undefined,
+                              opacity,
+                              userSelect: blur >= 4 ? 'none' : undefined,
+                              pointerEvents: blur >= 4 ? 'none' : undefined,
+                            }}
+                            aria-hidden={blur >= 4 ? 'true' : undefined}
+                          >
+                            <EventCard event={e} />
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                  <div className="paywall__events">
-                    {thu.map((e) => (
-                      <EventCard key={e.id} event={e} />
-                    ))}
-                  </div>
-                </>
-              )}
+                ))
+              })()}
               <div className="paywall__behind-spacer" />
             </div>
           </div>
 
-          <div className="paywall__sheet" onClick={onUnlock}>
+          <div className="paywall__sheet">
             <div className="paywall__handle" />
             <div className="paywall__brand">
               <span className="paywall__lock">
@@ -117,7 +192,7 @@ export default function Paywall() {
               <span className="paywall__amount">9.99</span>
             </div>
             <div className="paywall__price-sub">One-time · Lifetime access for this conference</div>
-            <button className="paywall__cta" type="button">
+            <button className="paywall__cta" type="button" onClick={onPay}>
               <svg
                 width="16"
                 height="20"
@@ -134,7 +209,7 @@ export default function Paywall() {
                 Buy with&nbsp;<span className="paywall__cta-pay">Pay</span>
               </span>
             </button>
-            <button className="paywall__alt" type="button">
+            <button className="paywall__alt" type="button" onClick={onPay}>
               Other payment methods
             </button>
             <div className="paywall__footer">

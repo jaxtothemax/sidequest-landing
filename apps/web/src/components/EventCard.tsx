@@ -1,4 +1,4 @@
-import { MapPin, Plus, Users, X } from 'lucide-react'
+import { Check, MapPin, Plus, Users } from 'lucide-react'
 
 import type { SeedEvent } from '../data/seedEvents'
 
@@ -19,6 +19,11 @@ export function EventCard({
         <div className="ev-card__top">
           <span className="ev-card__tag">{event.tag}</span>
           <span className="ev-card__match">{event.match}% match</span>
+          {event.inSchedule && (
+            <span className="ev-card__pin">
+              <Check size={10} /> In your plan
+            </span>
+          )}
         </div>
         <h4 className="ev-card__title">{event.title}</h4>
         <p className="ev-card__desc">{event.desc}</p>
@@ -37,7 +42,7 @@ export function EventCard({
           onClick={onToggle}
           aria-label={event.inSchedule ? 'Remove from schedule' : 'Add to schedule'}
         >
-          {event.inSchedule ? <X size={16} /> : <Plus size={16} />}
+          {event.inSchedule ? <Check size={16} strokeWidth={2.5} /> : <Plus size={16} />}
         </button>
       )}
     </article>

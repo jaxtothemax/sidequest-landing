@@ -1,67 +1,64 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from typing import Annotated
 
-from app.deps import UserClaims, get_supabase, verify_jwt
-from app.models import EventDTO, EventsResponse, PinRequest, PinResponse
+from fastapi import APIRouter, Depends, HTTPException, status
 
-router = APIRouter()
+from app.deps import CurrentUser, require_user
+from app.models.schemas import EventOut, PinRequest, PinResponse
+from app.services.catalog import CatalogRepo, get_catalog_repo
+from app.services.curations_store import CurationsStore, get_curations_store
+from app.services.pins_store import PinsStore, get_pins_store
+from app.services.schedule_merge import pinned_events
 
-
-@router.get("/events", response_model=EventsResponse)
-def list_events(conference_id: str | None = Query(default=None)) -> EventsResponse:
-    """Public catalog of events. Anyone can read; scraper writes via service role."""
-    try:
-        sb = get_supabase()
-    except HTTPException:
-        # Supabase not configured — return empty so the web app doesn't crash in early dev.
-        return EventsResponse(events=[], conference=None)
-
-    q = sb.table("events").select("*")
-    if conference_id:
-        q = q.eq("conference_id", conference_id)
-    rows = q.order("start").execute().data or []
-    events = [EventDTO(**row) for row in rows]
-    conf = {"id": conference_id, "name": conference_id or "", "city": ""} if conference_id else None
-    return EventsResponse(events=events, conference=conf)
+router = APIRouter(prefix="/api", tags=["events"])
 
 
 @router.post("/events/pin", response_model=PinResponse)
-def pin_event(body: PinRequest, user: UserClaims = Depends(verify_jwt)) -> PinResponse:
-    sb = get_supabase()
-    if body.pinned:
-        result = (
-            sb.table("user_events")
-            .upsert(
-                {"user_id": user.sub, "event_id": body.event_id, "pinned": True},
-                on_conflict="user_id,event_id",
-            )
-            .execute()
+def pin_event(
+    body: PinRequest,
+    user: Annotated[CurrentUser, Depends(require_user)],
+    pins: Annotated[PinsStore, Depends(get_pins_store)],
+    repo: Annotated[CatalogRepo, Depends(get_catalog_repo)],
+) -> PinResponse:
+    # Verify event exists in some conference. Cheap check: scan all conferences
+    # we know about. With one real conference this is fine; if it scales we'll
+    # add a CatalogRepo.get_event(event_id) method.
+    conferences = repo.list_conferences()
+    found = False
+    for c in conferences:
+        if any(e.id == body.event_id for e in repo.list_events(c.id)):
+            found = True
+            break
+    if not found:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"event '{body.event_id}' not found",
         )
-        row = (result.data or [None])[0]
-        return PinResponse(ok=True, user_event=row)
+    pins.set_pin(user.id, body.event_id, body.pinned)
+    return PinResponse(event_id=body.event_id, pinned=body.pinned)
+
+
+@router.get("/me/events", response_model=list[EventOut])
+def list_my_pinned_events(
+    user: Annotated[CurrentUser, Depends(require_user)],
+    pins: Annotated[PinsStore, Depends(get_pins_store)],
+    repo: Annotated[CatalogRepo, Depends(get_catalog_repo)],
+    curations: Annotated[CurationsStore, Depends(get_curations_store)],
+) -> list[EventOut]:
+    user_pins = pins.list_for_user(user.id)
+    if not user_pins:
+        return []
+    # Look up events from the user's active conference (if any) — falls back to
+    # any conference the pinned events belong to. With one real conference this
+    # is trivially the active one.
+    active = curations.get_active_user_curation(user.id)
+    conf_id = active.get("conference_id") if active else None
+    if conf_id:
+        events = repo.list_events(conf_id)
     else:
-        sb.table("user_events").delete().eq("user_id", user.sub).eq(
-            "event_id", body.event_id
-        ).execute()
-        return PinResponse(ok=True, user_event=None)
-
-
-@router.get("/me/events", response_model=list[EventDTO])
-def my_events(user: UserClaims = Depends(verify_jwt)) -> list[EventDTO]:
-    """Return the events this user has pinned, joined with the events table."""
-    sb = get_supabase()
-    rows = (
-        sb.table("user_events")
-        .select("event_id, events(*)")
-        .eq("user_id", user.sub)
-        .execute()
-        .data
-        or []
-    )
-    out: list[EventDTO] = []
-    for row in rows:
-        ev = row.get("events")
-        if ev:
-            out.append(EventDTO(**ev))
-    return out
+        # Cross-conference fallback: union all conference event lists.
+        events = []
+        for c in repo.list_conferences():
+            events.extend(repo.list_events(c.id))
+    return pinned_events(user_pins, events)

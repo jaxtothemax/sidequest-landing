@@ -1,13 +1,16 @@
 import { lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
+import { AdminGate } from './features/admin/AdminGate'
 import { AuthGate } from './features/auth/AuthGate'
 
 const AuthScreen = lazy(() => import('./features/auth/AuthScreen'))
 const AuthCallback = lazy(() => import('./features/auth/AuthCallback'))
 const Onboarding = lazy(() => import('./features/onboarding/Onboarding'))
 const Paywall = lazy(() => import('./features/onboarding/Paywall'))
+const PaywallThanks = lazy(() => import('./features/onboarding/PaywallThanks'))
 const MainApp = lazy(() => import('./features/mainapp/MainApp'))
+const Admin = lazy(() => import('./features/admin/Admin'))
 
 export function Router() {
   return (
@@ -15,6 +18,7 @@ export function Router() {
       <Route path="/" element={<Onboarding />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/paywall" element={<Paywall />} />
+      <Route path="/paywall/thanks" element={<PaywallThanks />} />
       <Route path="/auth" element={<AuthScreen />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route
@@ -23,6 +27,14 @@ export function Router() {
           <AuthGate>
             <MainApp />
           </AuthGate>
+        }
+      />
+      <Route
+        path="/admin/*"
+        element={
+          <AdminGate>
+            <Admin />
+          </AdminGate>
         }
       />
       <Route path="*" element={<Navigate to="/" replace />} />

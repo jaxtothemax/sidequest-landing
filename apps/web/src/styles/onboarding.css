@@ -432,9 +432,13 @@
 .day__dow { font-size: 9px; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 .day__num { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
 .day.active {
-  background: var(--fg-default); color: var(--fg-inverse); border-color: var(--fg-default);
+  background: #ffffff;
+  color: #111418;
+  border-color: #ffffff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
-.day.active .day__dow { color: rgba(255,255,255,0.7); }
+.day.active .day__dow { color: rgba(17, 20, 24, 0.65); }
+.day.active .day__num { color: #111418; }
 .day.disabled { opacity: 0.3; pointer-events: none; }
 
 /* Chips */
@@ -658,3 +662,195 @@
 }
 .scr-next__title { font-family: var(--font-display); font-weight: 700; font-size: 15px; margin-bottom: 4px; }
 .scr-next__sub { font-size: 12px; color: var(--fg-muted); }
+
+/* ============================================================================
+ * Paywall — thanks / post-purchase placeholder
+ * Renders full-bleed (NOT inside the .sq-frame phone mockup) so the long
+ * schedule list scrolls naturally instead of being clipped.
+ * ============================================================================ */
+
+.thanks-page {
+  min-height: 100vh;
+  background: var(--bg-canvas);
+  color: var(--fg-default);
+  overflow-y: auto;
+}
+
+.thanks {
+  padding: 32px 24px 64px;
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.thanks__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 16px 0 8px;
+}
+
+.thanks__check {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(74, 222, 128, 0.12);
+  color: #4ade80;
+  margin-bottom: 4px;
+}
+
+.thanks__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 26px;
+  margin: 0;
+}
+
+.thanks__sub {
+  margin: 0;
+  font-size: 14px;
+  color: var(--fg-muted);
+  max-width: 480px;
+}
+
+/* Visible TODO banner — meant to be obvious, not pretty */
+
+.thanks__todo {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px dashed #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--fg-default);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.thanks__todo strong {
+  color: #f59e0b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.thanks__todo code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(127, 127, 127, 0.18);
+}
+
+.thanks__todo-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+/* Action row */
+
+.thanks__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.thanks__cta {
+  flex: 1;
+  min-width: 180px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--sq-red, #e62c5a);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.thanks__cta:hover {
+  background: #d92443;
+}
+
+.thanks__cta:active {
+  transform: translateY(1px);
+}
+
+.thanks__cta--secondary {
+  background: transparent;
+  color: var(--fg-default);
+  border: 1px solid var(--border-default);
+}
+
+.thanks__cta--secondary:hover {
+  background: rgba(127, 127, 127, 0.08);
+}
+
+/* Schedule list */
+
+.thanks__schedule {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.thanks__schedule-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--sq-red);
+  text-transform: uppercase;
+}
+
+.thanks__day-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thanks__day-label {
+  font-size: 12px;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  padding-top: 4px;
+}
+
+.thanks__events {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thanks__empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--fg-muted);
+  font-size: 14px;
+  border: 1px dashed var(--border-default);
+  border-radius: 10px;
+}

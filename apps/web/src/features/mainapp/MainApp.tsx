@@ -1,6 +1,12 @@
-import { Calendar as CalendarIcon, MessageSquare, User as UserIcon } from 'lucide-react'
+import {
+  Calendar as CalendarIcon,
+  MessageSquare,
+  Sparkles,
+  User as UserIcon,
+} from 'lucide-react'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
+import { ApplyPage } from './Apply'
 import { ChatPage } from './Chat'
 import { SchedulePage } from './Schedule'
 import { ProfilePage } from './Profile'
@@ -15,10 +21,12 @@ export default function MainApp() {
       <div className="sq-frame ma">
         <div className="ma__page">
           <Routes>
-            <Route index element={<Navigate to="chat" replace />} />
+            <Route index element={<Navigate to="/app/chat" replace />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="schedule" element={<SchedulePage />} />
+            <Route path="apply" element={<ApplyPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="*" element={<Navigate to="/app/chat" replace />} />
           </Routes>
         </div>
         <BottomNav />
@@ -29,9 +37,10 @@ export default function MainApp() {
 
 function BottomNav() {
   const items = [
-    { to: 'chat', label: 'Assistant', Icon: MessageSquare },
-    { to: 'schedule', label: 'Schedule', Icon: CalendarIcon },
-    { to: 'profile', label: 'Profile', Icon: UserIcon },
+    { to: '/app/chat', label: 'Assistant', Icon: MessageSquare },
+    { to: '/app/schedule', label: 'Schedule', Icon: CalendarIcon },
+    { to: '/app/apply', label: 'AI Apply', Icon: Sparkles },
+    { to: '/app/profile', label: 'Profile', Icon: UserIcon },
   ]
   return (
     <nav className="ma-nav">
@@ -39,6 +48,7 @@ function BottomNav() {
         <NavLink
           key={to}
           to={to}
+          end
           className={({ isActive }) => `ma-nav__item ${isActive ? 'is-active' : ''}`}
         >
           {({ isActive }) => (
