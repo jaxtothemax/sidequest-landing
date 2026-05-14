@@ -59,6 +59,22 @@ export default function Paywall() {
     })
   }
 
+  // Teaser blur: top events crisp, lower events progressively blurred so the
+  // preview *shows* there's a full schedule without giving it away for free.
+  const teaserBlurPx = (flatIndex: number): number => {
+    if (flatIndex === 0) return 0
+    if (flatIndex === 1) return 2
+    if (flatIndex === 2) return 4
+    if (flatIndex === 3) return 6
+    return 8
+  }
+  const teaserOpacity = (flatIndex: number): number => {
+    if (flatIndex <= 1) return 1
+    if (flatIndex === 2) return 0.85
+    if (flatIndex === 3) return 0.7
+    return 0.55
+  }
+
   const scrollRef = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0)
   const [stage, setStage] = useState<'hidden' | 'peek' | 'expanded'>('hidden')
@@ -98,22 +114,42 @@ export default function Paywall() {
                   Loading your preview…
                 </div>
               )}
-              {grouped.map(([day, items], i) => (
-                <div key={day}>
-                  <div
-                    className={`paywall__day${i > 0 ? ' paywall__day--secondary' : ''}`}
-                  >
-                    <span className="paywall__day-dot" />
-                    {dayLabel(items[0].start, day)} · {items.length} event
-                    {items.length === 1 ? '' : 's'}
+              {(() => {
+                let flat = -1
+                return grouped.map(([day, items], i) => (
+                  <div key={day}>
+                    <div
+                      className={`paywall__day${i > 0 ? ' paywall__day--secondary' : ''}`}
+                    >
+                      <span className="paywall__day-dot" />
+                      {dayLabel(items[0].start, day)} · {items.length} event
+                      {items.length === 1 ? '' : 's'}
+                    </div>
+                    <div className="paywall__events">
+                      {items.map((e) => {
+                        flat += 1
+                        const blur = teaserBlurPx(flat)
+                        const opacity = teaserOpacity(flat)
+                        return (
+                          <div
+                            key={e.id}
+                            className="paywall__event-wrap"
+                            style={{
+                              filter: blur ? `blur(${blur}px)` : undefined,
+                              opacity,
+                              userSelect: blur >= 4 ? 'none' : undefined,
+                              pointerEvents: blur >= 4 ? 'none' : undefined,
+                            }}
+                            aria-hidden={blur >= 4 ? 'true' : undefined}
+                          >
+                            <EventCard event={e} />
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                  <div className="paywall__events">
-                    {items.map((e) => (
-                      <EventCard key={e.id} event={e} />
-                    ))}
-                  </div>
-                </div>
-              ))}
+                ))
+              })()}
               <div className="paywall__behind-spacer" />
             </div>
           </div>
