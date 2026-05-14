@@ -157,7 +157,7 @@
   display: flex; gap: 8px;
   padding: 10px 14px 14px;
   border-top: 1px solid var(--border-subtle);
-  background: var(--background, #fff);
+  background: var(--bg-canvas);
 }
 .chat__input input {
   flex: 1; min-width: 0;
