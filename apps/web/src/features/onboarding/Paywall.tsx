@@ -1,29 +1,63 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Check, Lock, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import SymbolSVG from '../../assets/Symbol.svg'
 import { EventCard } from '../../components/EventCard'
+import type { SeedEvent } from '../../data/seedEvents'
 import { useEvents } from '../../hooks/useEvents'
 import { useOnboarding } from '../../stores/onboardingStore'
+
+const FALLBACK_PREVIEW_LIMIT = 6
 
 export default function Paywall() {
   const navigate = useNavigate()
   const { events } = useEvents()
   const curatedSchedule = useOnboarding((s) => s.curatedSchedule)
 
-  // After the LLM curates a schedule, mark those events as `inSchedule` so the
-  // Paywall preview reflects the user's actual picks (not the seed defaults).
-  const curatedIds = new Set((curatedSchedule ?? []).map((c) => c.event_id))
-  const eventsWithCuration = curatedIds.size
-    ? events.map((e) => ({ ...e, inSchedule: curatedIds.has(e.id) }))
-    : events
+  // Build the schedule preview shown on the left:
+  // - If the LLM curated a schedule, show those events.
+  // - Else show the first N events of the active conference as a basic
+  //   teaser, so the paywall always has content.
+  const scheduled: SeedEvent[] = useMemo(() => {
+    const sortByStart = (a: SeedEvent, b: SeedEvent) =>
+      a.day - b.day || a.start.localeCompare(b.start)
 
-  const scheduled = eventsWithCuration
-    .filter((e) => e.inSchedule)
-    .sort((a, b) => a.day - b.day || a.start.localeCompare(b.start))
-  const wed = scheduled.filter((e) => e.day === 29)
-  const thu = scheduled.filter((e) => e.day === 30)
+    const curatedIds = new Set((curatedSchedule ?? []).map((c) => c.event_id))
+    if (curatedIds.size) {
+      return events
+        .filter((e) => curatedIds.has(e.id))
+        .map((e) => ({ ...e, inSchedule: true }))
+        .sort(sortByStart)
+    }
+    return events
+      .slice()
+      .sort(sortByStart)
+      .slice(0, FALLBACK_PREVIEW_LIMIT)
+      .map((e) => ({ ...e, inSchedule: true }))
+  }, [events, curatedSchedule])
+
+  // Group preview events by their day-of-month so the rendering works for any
+  // conference (not just hardcoded April 29/30).
+  const grouped = useMemo(() => {
+    const map = new Map<number, SeedEvent[]>()
+    for (const e of scheduled) {
+      const arr = map.get(e.day) ?? []
+      arr.push(e)
+      map.set(e.day, arr)
+    }
+    return Array.from(map.entries()).sort(([a], [b]) => a - b)
+  }, [scheduled])
+
+  const dayLabel = (firstStart: string, day: number) => {
+    const d = new Date(firstStart)
+    if (Number.isNaN(d.getTime())) return `Day ${day}`
+    return d.toLocaleDateString(undefined, {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    })
+  }
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0)
@@ -58,33 +92,28 @@ export default function Paywall() {
                 opacity: 1 - progress * 0.3,
               }}
             >
-              {wed.length > 0 && (
-                <>
-                  <div className="paywall__day">
+              <h1 className="paywall__schedule-title">Your schedule</h1>
+              {grouped.length === 0 && (
+                <div className="paywall__day paywall__day--secondary">
+                  Loading your preview…
+                </div>
+              )}
+              {grouped.map(([day, items], i) => (
+                <div key={day}>
+                  <div
+                    className={`paywall__day${i > 0 ? ' paywall__day--secondary' : ''}`}
+                  >
                     <span className="paywall__day-dot" />
-                    Wednesday, April 29 · {wed.length} events
+                    {dayLabel(items[0].start, day)} · {items.length} event
+                    {items.length === 1 ? '' : 's'}
                   </div>
-                  <h1 className="paywall__schedule-title">Your schedule</h1>
                   <div className="paywall__events">
-                    {wed.map((e) => (
+                    {items.map((e) => (
                       <EventCard key={e.id} event={e} />
                     ))}
                   </div>
-                </>
-              )}
-              {thu.length > 0 && (
-                <>
-                  <div className="paywall__day paywall__day--secondary">
-                    <span className="paywall__day-dot" />
-                    Thursday, April 30 · {thu.length} events
-                  </div>
-                  <div className="paywall__events">
-                    {thu.map((e) => (
-                      <EventCard key={e.id} event={e} />
-                    ))}
-                  </div>
-                </>
-              )}
+                </div>
+              ))}
               <div className="paywall__behind-spacer" />
             </div>
           </div>
