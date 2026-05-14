@@ -102,14 +102,35 @@
 }
 
 .admin__field select,
-.admin__field input {
+.admin__field input,
+.admin__field textarea {
   font: inherit;
   padding: 8px 10px;
-  border: 1px solid var(--border, rgba(127, 127, 127, 0.3));
-  background: var(--surface, transparent);
-  color: inherit;
+  border: 1px solid var(--border-default, rgba(127, 127, 127, 0.3));
+  background: var(--bg-canvas, #fff);
+  color: var(--fg-default, #111);
   border-radius: var(--radius-md, 8px);
   min-width: 140px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin__field select:focus,
+.admin__field input:focus,
+.admin__field textarea:focus {
+  border-color: var(--sq-red, #e62c5a);
+  box-shadow: 0 0 0 3px rgba(230, 44, 90, 0.15);
+}
+
+.admin__field input::placeholder,
+.admin__field textarea::placeholder {
+  color: var(--fg-subtle, rgba(127, 127, 127, 0.55));
+}
+
+.admin__field input[disabled],
+.admin__field input[readonly] {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .admin__count {
@@ -356,13 +377,9 @@
 }
 
 .admin__field textarea {
-  font: inherit;
-  padding: 8px 10px;
-  border: 1px solid var(--border, rgba(127, 127, 127, 0.3));
-  background: var(--surface, transparent);
-  color: inherit;
-  border-radius: var(--radius-md, 8px);
+  /* Common styles inherited from the input/select/textarea rule above. */
   resize: vertical;
+  min-height: 80px;
 }
 
 /* Conferences tab — sidebar + detail */
