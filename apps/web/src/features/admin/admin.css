@@ -449,6 +449,190 @@
   color: var(--admin-fg-muted, rgba(127, 127, 127, 0.85));
 }
 
+/* Scrape sources */
+
+.admin-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: var(--space-4, 16px);
+  margin-top: var(--space-4, 16px);
+  border-top: 1px solid var(--admin-border, rgba(127, 127, 127, 0.25));
+}
+
+.admin-sources__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-sources__title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-sources__sub {
+  font-size: 12px;
+  color: var(--admin-fg-muted, #5b6470);
+  margin-top: 2px;
+}
+
+.admin-sources__run {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--admin-accent-soft, rgba(230, 44, 90, 0.08));
+  color: var(--admin-fg, #111418);
+  border: 1px solid var(--admin-accent-soft, rgba(230, 44, 90, 0.18));
+}
+
+.admin-sources__run.is-error {
+  color: var(--admin-danger, #d92443);
+  border-color: var(--admin-danger, #d92443);
+  background: rgba(217, 36, 67, 0.06);
+}
+
+.admin-sources__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-sources__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-border, rgba(127, 127, 127, 0.25));
+  border-radius: 8px;
+  background: var(--admin-bg, #fff);
+}
+
+.admin-sources__row.is-off {
+  opacity: 0.55;
+}
+
+.admin-sources__row-main {
+  min-width: 0;
+}
+
+.admin-sources__url {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--admin-accent, #e62c5a);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.admin-sources__url:hover {
+  text-decoration: underline;
+}
+
+.admin-sources__meta {
+  font-size: 11px;
+  color: var(--admin-fg-muted, #5b6470);
+  margin-top: 2px;
+}
+
+.admin-sources__hint {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  cursor: help;
+}
+
+.admin-sources__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--admin-fg-muted, #5b6470);
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-sources__toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--admin-accent, #e62c5a);
+  margin: 0;
+}
+
+.admin-sources__add {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-sources__add input[type="url"] {
+  flex: 1;
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--admin-border-strong, #cdd2d8);
+  background: var(--admin-bg-input, #fff);
+  color: var(--admin-fg, #111);
+  border-radius: 8px;
+  outline: none;
+}
+
+.admin-sources__add input[type="url"]:focus {
+  border-color: var(--admin-accent, #e62c5a);
+  box-shadow: 0 0 0 3px var(--admin-accent-soft, rgba(230, 44, 90, 0.15));
+}
+
+.admin-sources__empty {
+  font-size: 12px;
+  color: var(--admin-fg-muted, #5b6470);
+  padding: 12px;
+  text-align: center;
+  border: 1px dashed var(--admin-border, rgba(127, 127, 127, 0.25));
+  border-radius: 8px;
+}
+
+.admin-sources__schedule {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--admin-bg-muted, #f6f7f9);
+  font-size: 12px;
+  color: var(--admin-fg-muted, #5b6470);
+}
+
+.admin-sources__schedule-label {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--admin-fg, #111);
+}
+
+.admin-sources__pill {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--admin-accent-soft, rgba(230, 44, 90, 0.08));
+  color: var(--admin-accent, #e62c5a);
+  font-weight: 500;
+}
+
+.admin-sources__schedule-hint {
+  flex: 1;
+  min-width: 200px;
+}
+
 /* ============================================================================
  * EDIT SURFACES — light theme.
  * Applies to the create/edit drawer (.admin-drawer__panel) and the conference

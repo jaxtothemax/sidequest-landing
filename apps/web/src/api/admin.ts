@@ -82,6 +82,72 @@ export function getConference(id: string): Promise<ConferenceFromApi> {
   return apiFetch<ConferenceFromApi>(`/api/conferences/${encodeURIComponent(id)}`)
 }
 
+// ---------- scrape sources ----------
+
+export type ScrapeSource = {
+  id: string
+  conference_id: string
+  source_type: string
+  url: string
+  enabled: boolean
+  last_scraped_at: string | null
+  last_status: string | null
+  last_error: string | null
+  events_added: number
+  events_updated: number
+  scrape_interval_minutes: number | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export type ScrapeRunResult = {
+  ok: boolean
+  message: string
+  sources_attempted: number
+  sources_failed: number
+  events_added: number
+  events_updated: number
+}
+
+export function listScrapeSources(conferenceId: string): Promise<ScrapeSource[]> {
+  return apiFetch<ScrapeSource[]>(
+    `/api/admin/conferences/${encodeURIComponent(conferenceId)}/sources`,
+  )
+}
+
+export function addScrapeSource(
+  conferenceId: string,
+  body: { url: string; source_type?: string; enabled?: boolean },
+): Promise<ScrapeSource> {
+  return apiFetch<ScrapeSource>(
+    `/api/admin/conferences/${encodeURIComponent(conferenceId)}/sources`,
+    { method: 'POST', body: JSON.stringify(body) },
+  )
+}
+
+export function updateScrapeSource(
+  sourceId: string,
+  patch: { url?: string; enabled?: boolean; scrape_interval_minutes?: number | null },
+): Promise<ScrapeSource> {
+  return apiFetch<ScrapeSource>(`/api/admin/sources/${encodeURIComponent(sourceId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function deleteScrapeSource(sourceId: string): Promise<void> {
+  return apiFetch<void>(`/api/admin/sources/${encodeURIComponent(sourceId)}`, {
+    method: 'DELETE',
+  })
+}
+
+export function triggerScrape(conferenceId: string): Promise<ScrapeRunResult> {
+  return apiFetch<ScrapeRunResult>(
+    `/api/admin/conferences/${encodeURIComponent(conferenceId)}/scrape`,
+    { method: 'POST' },
+  )
+}
+
 // ---------- events ----------
 
 export function listAdminEvents(params: {

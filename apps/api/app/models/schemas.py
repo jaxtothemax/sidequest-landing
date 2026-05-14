@@ -230,6 +230,51 @@ class AdminConferenceUpsert(BaseModel):
 
 
 # ============================================================================
+# Scrape sources
+# ============================================================================
+
+
+class ScrapeSourceCreate(BaseModel):
+    url: str
+    source_type: str = "luma"
+    enabled: bool = True
+    scrape_interval_minutes: int | None = None
+
+
+class ScrapeSourceUpdate(BaseModel):
+    url: str | None = None
+    enabled: bool | None = None
+    scrape_interval_minutes: int | None = None
+
+
+class ScrapeSourceOut(BaseModel):
+    id: str
+    conference_id: str
+    source_type: str
+    url: str
+    enabled: bool
+    last_scraped_at: datetime | None = None
+    last_status: str | None = None
+    last_error: str | None = None
+    events_added: int = 0
+    events_updated: int = 0
+    scrape_interval_minutes: int | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class ScrapeRunResult(BaseModel):
+    """Returned by POST /api/admin/conferences/{id}/scrape."""
+
+    ok: bool
+    message: str
+    sources_attempted: int = 0
+    sources_failed: int = 0
+    events_added: int = 0
+    events_updated: int = 0
+
+
+# ============================================================================
 # Chat
 # ============================================================================
 

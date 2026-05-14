@@ -12,9 +12,17 @@ from app.models.schemas import (
     AdminEventUpdate,
     ConferenceOut,
     LockRequest,
+    ScrapeRunResult,
+    ScrapeSourceCreate,
+    ScrapeSourceOut,
+    ScrapeSourceUpdate,
 )
 from app.services.admin_repo import EventsAdminRepo, get_events_admin_repo
 from app.services.catalog import CatalogRepo, get_catalog_repo
+from app.services.scrape_sources_repo import (
+    ScrapeSourcesRepo,
+    get_scrape_sources_repo,
+)
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -133,3 +141,122 @@ def upsert_conference(
     if fields.get("days") is None:
         fields.pop("days", None)
     return repo.upsert_conference(fields)
+
+
+# ============================================================================
+# Scrape sources
+# ============================================================================
+
+
+def _source_out(row: dict) -> ScrapeSourceOut:
+    return ScrapeSourceOut.model_validate(row)
+
+
+@router.get(
+    "/conferences/{conference_id}/sources",
+    response_model=list[ScrapeSourceOut],
+)
+def list_sources(
+    conference_id: str,
+    admin: Annotated[CurrentUser, Depends(require_admin)],
+    repo: Annotated[ScrapeSourcesRepo, Depends(get_scrape_sources_repo)],
+) -> list[ScrapeSourceOut]:
+    return [_source_out(r) for r in repo.list_for_conference(conference_id)]
+
+
+@router.post(
+    "/conferences/{conference_id}/sources",
+    response_model=ScrapeSourceOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def add_source(
+    conference_id: str,
+    body: ScrapeSourceCreate,
+    admin: Annotated[CurrentUser, Depends(require_admin)],
+    repo: Annotated[ScrapeSourcesRepo, Depends(get_scrape_sources_repo)],
+) -> ScrapeSourceOut:
+    url = body.url.strip()
+    if not url:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="url is required",
+        )
+    row = repo.create(
+        conference_id=conference_id,
+        url=url,
+        source_type=body.source_type,
+        enabled=body.enabled,
+        scrape_interval_minutes=body.scrape_interval_minutes,
+    )
+    return _source_out(row)
+
+
+@router.patch("/sources/{source_id}", response_model=ScrapeSourceOut)
+def update_source(
+    source_id: str,
+    body: ScrapeSourceUpdate,
+    admin: Annotated[CurrentUser, Depends(require_admin)],
+    repo: Annotated[ScrapeSourcesRepo, Depends(get_scrape_sources_repo)],
+) -> ScrapeSourceOut:
+    row = repo.update(
+        source_id,
+        url=body.url.strip() if body.url is not None else None,
+        enabled=body.enabled,
+        scrape_interval_minutes=body.scrape_interval_minutes,
+    )
+    if row is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"source '{source_id}' not found",
+        )
+    return _source_out(row)
+
+
+@router.delete("/sources/{source_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_source(
+    source_id: str,
+    admin: Annotated[CurrentUser, Depends(require_admin)],
+    repo: Annotated[ScrapeSourcesRepo, Depends(get_scrape_sources_repo)],
+) -> None:
+    if not repo.delete(source_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"source '{source_id}' not found",
+        )
+
+
+@router.post(
+    "/conferences/{conference_id}/scrape",
+    response_model=ScrapeRunResult,
+)
+def trigger_scrape(
+    conference_id: str,
+    admin: Annotated[CurrentUser, Depends(require_admin)],
+    sources_repo: Annotated[ScrapeSourcesRepo, Depends(get_scrape_sources_repo)],
+) -> ScrapeRunResult:
+    """STUB — Slice 3 will wire the actual Luma scraper.
+
+    For now: iterate enabled sources, mark each as 'pending', record the
+    timestamp, and return a clear 'not implemented' message so the UX
+    surfaces the right truth.
+    """
+    sources = [s for s in sources_repo.list_for_conference(conference_id) if s["enabled"]]
+    for s in sources:
+        sources_repo.record_scrape(
+            s["id"],
+            status="pending",
+            error="Scraper not implemented yet (Slice 3).",
+            events_added=0,
+            events_updated=0,
+        )
+    return ScrapeRunResult(
+        ok=True,
+        message=(
+            f"Scraper not implemented yet — recorded last_scraped_at on "
+            f"{len(sources)} enabled source(s). Slice 3 will wire the real Luma fetcher."
+        ),
+        sources_attempted=len(sources),
+        sources_failed=0,
+        events_added=0,
+        events_updated=0,
+    )

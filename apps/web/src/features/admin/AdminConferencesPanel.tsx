@@ -8,6 +8,7 @@ import {
   type AdminConferenceDay,
   type ConferenceFromApi,
 } from '../../api/admin'
+import { AdminScrapeSourcesPanel } from './AdminScrapeSourcesPanel'
 
 const NEW_MARKER = '__new__'
 
@@ -331,6 +332,8 @@ function ConferenceEditor(props: {
               : 'Save changes'}
         </button>
       </div>
+
+      {!props.isCreate && c.id && <AdminScrapeSourcesPanel conferenceId={c.id} />}
     </form>
   )
 }
