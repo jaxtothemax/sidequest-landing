@@ -202,6 +202,7 @@ function ConferenceEditor(props: {
   }
 
   return (
+    <>
     <form className="admin__form" onSubmit={submit}>
       <div className="admin-drawer__row">
         <label className="admin__field">
@@ -333,7 +334,8 @@ function ConferenceEditor(props: {
         </button>
       </div>
 
-      {!props.isCreate && c.id && <AdminScrapeSourcesPanel conferenceId={c.id} />}
     </form>
+    {!props.isCreate && c.id && <AdminScrapeSourcesPanel conferenceId={c.id} />}
+    </>
   )
 }

@@ -6,6 +6,7 @@ import {
   createAdminEvent,
   deleteAdminEvent,
   listAdminEvents,
+  listAllConferences,
   setAdminEventLock,
   updateAdminEvent,
   type AdminEvent,
@@ -38,6 +39,15 @@ export function AdminEventsPanel() {
   const [formError, setFormError] = useState<string | null>(null)
 
   const queryClient = useQueryClient()
+
+  // Conferences for the filter dropdown — same query key as AdminConferencesPanel
+  // so adding/editing a conference there auto-refreshes this dropdown too.
+  const confsQuery = useQuery({
+    queryKey: ['admin', 'conferences'],
+    queryFn: listAllConferences,
+    staleTime: 30_000,
+  })
+  const conferences = confsQuery.data ?? CONFERENCES
 
   const params = useMemo(
     () => ({
@@ -114,9 +124,10 @@ export function AdminEventsPanel() {
         <label className="admin__field">
           <span>Conference</span>
           <select value={conferenceId} onChange={(e) => setConferenceId(e.target.value)}>
-            {CONFERENCES.map((c) => (
+            {conferences.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
+                {'is_active' in c && c.is_active === false ? ' (draft)' : ''}
               </option>
             ))}
           </select>
