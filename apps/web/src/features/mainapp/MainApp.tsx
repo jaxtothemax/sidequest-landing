@@ -1,6 +1,12 @@
-import { Calendar as CalendarIcon, MessageSquare, User as UserIcon } from 'lucide-react'
+import {
+  Calendar as CalendarIcon,
+  MessageSquare,
+  Sparkles,
+  User as UserIcon,
+} from 'lucide-react'
 import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 
+import { ApplyPage } from './Apply'
 import { ChatPage } from './Chat'
 import { SchedulePage } from './Schedule'
 import { ProfilePage } from './Profile'
@@ -18,6 +24,7 @@ export default function MainApp() {
             <Route index element={<Navigate to="/app/chat" replace />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="schedule" element={<SchedulePage />} />
+            <Route path="apply" element={<ApplyPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/app/chat" replace />} />
           </Routes>
@@ -32,6 +39,7 @@ function BottomNav() {
   const items = [
     { to: '/app/chat', label: 'Assistant', Icon: MessageSquare },
     { to: '/app/schedule', label: 'Schedule', Icon: CalendarIcon },
+    { to: '/app/apply', label: 'AI Apply', Icon: Sparkles },
     { to: '/app/profile', label: 'Profile', Icon: UserIcon },
   ]
   return (
