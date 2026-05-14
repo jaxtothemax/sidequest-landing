@@ -432,9 +432,13 @@
 .day__dow { font-size: 9px; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 .day__num { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
 .day.active {
-  background: var(--fg-default); color: var(--fg-inverse); border-color: var(--fg-default);
+  background: #ffffff;
+  color: #111418;
+  border-color: #ffffff;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
-.day.active .day__dow { color: rgba(255,255,255,0.7); }
+.day.active .day__dow { color: rgba(17, 20, 24, 0.65); }
+.day.active .day__num { color: #111418; }
 .day.disabled { opacity: 0.3; pointer-events: none; }
 
 /* Chips */
