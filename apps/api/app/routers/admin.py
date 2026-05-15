@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -17,12 +18,15 @@ from app.models.schemas import (
     ScrapeSourceOut,
     ScrapeSourceUpdate,
 )
+from app.scraper.luma_runner import SourceScrapeStats, run_for_source
 from app.services.admin_repo import EventsAdminRepo, get_events_admin_repo
 from app.services.catalog import CatalogRepo, get_catalog_repo
 from app.services.scrape_sources_repo import (
     ScrapeSourcesRepo,
     get_scrape_sources_repo,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -233,30 +237,76 @@ def trigger_scrape(
     conference_id: str,
     admin: Annotated[CurrentUser, Depends(require_admin)],
     sources_repo: Annotated[ScrapeSourcesRepo, Depends(get_scrape_sources_repo)],
+    events_repo: Annotated[EventsAdminRepo, Depends(get_events_admin_repo)],
 ) -> ScrapeRunResult:
-    """STUB — Slice 3 will wire the actual Luma scraper.
+    """Run every enabled Luma source on this conference and upsert events.
 
-    For now: iterate enabled sources, mark each as 'pending', record the
-    timestamp, and return a clear 'not implemented' message so the UX
-    surfaces the right truth.
+    Per-source failures (network error, bad calendar URL, etc.) are caught
+    and recorded against the source's last_scrape_status; one bad source
+    doesn't fail the whole run. Per-event failures inside a source are
+    counted but not surfaced individually — see server logs.
     """
     sources = [s for s in sources_repo.list_for_conference(conference_id) if s["enabled"]]
-    for s in sources:
-        sources_repo.record_scrape(
-            s["id"],
-            status="pending",
-            error="Scraper not implemented yet (Slice 3).",
+    if not sources:
+        return ScrapeRunResult(
+            ok=True,
+            message="No enabled scrape sources for this conference.",
+            sources_attempted=0,
+            sources_failed=0,
             events_added=0,
             events_updated=0,
         )
+
+    total = SourceScrapeStats()
+    failures: list[str] = []
+
+    for source in sources:
+        url = source["url"]
+        source_id = source["id"]
+        try:
+            stats = run_for_source(
+                conference_id=conference_id,
+                source_url=url,
+                events_repo=events_repo,
+            )
+        except Exception as exc:
+            logger.exception("admin.trigger_scrape source=%s failed", url)
+            failures.append(f"{url}: {exc}")
+            sources_repo.record_scrape(
+                source_id,
+                status="error",
+                error=str(exc)[:500],
+            )
+            continue
+
+        sources_repo.record_scrape(
+            source_id,
+            status="ok",
+            events_added=stats.events_added,
+            events_updated=stats.events_updated,
+        )
+        total.merge(stats)
+
+    failed = len(failures)
+    if failed == 0:
+        message = (
+            f"Scraped {len(sources)} source(s): "
+            f"added {total.events_added}, updated {total.events_updated}, "
+            f"skipped (locked) {total.events_skipped_locked}, "
+            f"failed events {total.events_failed}."
+        )
+    else:
+        message = (
+            f"Scraped {len(sources)} source(s); {failed} failed. "
+            f"Added {total.events_added}, updated {total.events_updated}. "
+            f"First failure: {failures[0]}"
+        )
+
     return ScrapeRunResult(
-        ok=True,
-        message=(
-            f"Scraper not implemented yet — recorded last_scraped_at on "
-            f"{len(sources)} enabled source(s). Slice 3 will wire the real Luma fetcher."
-        ),
+        ok=failed == 0,
+        message=message,
         sources_attempted=len(sources),
-        sources_failed=0,
-        events_added=0,
-        events_updated=0,
+        sources_failed=failed,
+        events_added=total.events_added,
+        events_updated=total.events_updated,
     )
