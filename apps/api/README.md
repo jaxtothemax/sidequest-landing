@@ -37,6 +37,53 @@ docker build -t sidequest-api .
 docker run --rm -p 8000:8000 --env-file .env sidequest-api
 ```
 
+## Deploy (Hetzner / Ansible / Traefik)
+
+The container is built from this directory by the Ansible role (`build_subdir: apps/api`)
+and routed through Traefik. The deployment system generates the `.env` file and the
+compose file — only the `Dockerfile` and source live here.
+
+**Runtime contract**
+
+- Binds `0.0.0.0:${PORT}` (defaults to `8000`). Traefik forwards HTTPS to this port.
+- Starts unattended via `uvicorn app.main:app`. No interactive setup.
+- Logs to stdout/stderr (`PYTHONUNBUFFERED=1`).
+- Health endpoint: `GET /health` (returns `{"ok": true}`).
+- Runs as non-root user `app` (uid 1000).
+
+**Required env vars**
+
+| Var | Purpose |
+| --- | --- |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | Service-role key (server-side only) |
+| `OPENROUTER_API_KEY` | OpenRouter API key for chat + curation |
+| `CORS_ORIGINS` | Comma-separated allowed origins for the web app |
+
+**Optional**
+
+| Var | Default | Purpose |
+| --- | --- | --- |
+| `PORT` | `8000` | HTTP listen port |
+| `SUPABASE_JWT_JWKS_URL` | `${SUPABASE_URL}/auth/v1/.well-known/jwks.json` | JWT verification |
+| `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` | OpenRouter endpoint |
+| `OPENROUTER_MODEL_DEFAULT` | `anthropic/claude-sonnet-4-5` | Default chat/curation model |
+| `OPENROUTER_MODEL_CHEAP` | `anthropic/claude-haiku-4-5` | Cheap fallback model |
+
+**Migrations**
+
+Schema is applied out-of-band against Supabase:
+
+```bash
+supabase db push                          # via Supabase CLI
+# or
+psql "$DATABASE_URL" -f supabase/migrations/0001_init.sql
+psql "$DATABASE_URL" -f supabase/migrations/0002_seed_token2049.sql
+```
+
+There is no entrypoint migration step — the container starts immediately and serves
+requests against the existing schema.
+
 ## Implemented so far
 
 - **Phase 0** — skeleton, `/health`, JWT verifier wired (no protected routes yet).
