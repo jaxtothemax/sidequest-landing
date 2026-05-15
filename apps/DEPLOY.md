@@ -38,9 +38,15 @@ public Traefik hostname before marking the rollout green.
 **Dockerfile:** `apps/api/Dockerfile`
 **Build context:** `apps/api/` — set `build_subdir: apps/api`
 **Internal port:** `${PORT}`, defaults to `8000`
-**Health endpoint:** `GET /health` → `{"status":"ok"}`
+**Health endpoint:** `GET /health` → `{"status":"ok","version":"<git-sha>"}`
 **Run mode:** non-root user `app` (uid 1000), `PYTHONUNBUFFERED=1`, logs to stdout/stderr.
 **Migrations:** none at container start — applied out-of-band against Supabase.
+
+### Build-time arg (recommended)
+
+| Build arg | Value | Notes |
+| --- | --- | --- |
+| `GIT_SHA` | `$(git -C repo rev-parse --short HEAD)` | Surfaces in `/health.version`. Lets us confirm `curl /health` reflects the commit that was just pushed — i.e. autodeploy actually rolled. Defaults to `"dev"` if omitted. |
 
 ### Required runtime env vars
 
@@ -115,6 +121,8 @@ apps:
     dockerfile: apps/api/Dockerfile
     internal_port: 8000
     health_path: /health
+    build_args:
+      GIT_SHA: "{{ resolved_git_sha[:7] }}"  # or however your role exposes the cloned commit
     env:
       SUPABASE_URL: "{{ vault_supabase_url }}"
       SUPABASE_SERVICE_KEY: "{{ vault_supabase_service_key }}"
