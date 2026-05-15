@@ -1,0 +1,34 @@
+# Applied to any Docker build whose context is the repo root (e.g. apps/web).
+# Per-app builds with a narrower context (e.g. apps/api) use their own
+# apps/<name>/.dockerignore instead.
+
+.git
+.gitignore
+.DS_Store
+.vercel
+.vercelignore
+.context
+.figma-refs
+.claude
+
+# Node
+**/node_modules
+**/.pnpm-store
+**/dist
+**/.vite
+
+# Python
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/*.pyc
+
+# Local env + secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Logs
+**/*.log

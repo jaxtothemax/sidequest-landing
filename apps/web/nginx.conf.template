@@ -1,0 +1,46 @@
+server {
+    listen ${PORT};
+    listen [::]:${PORT};
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Access/error logs to stdout/stderr (nginx:alpine default)
+    access_log /dev/stdout;
+    error_log  /dev/stderr;
+
+    # Lightweight health endpoint for orchestrator / Traefik
+    location = /healthz {
+        access_log off;
+        return 200 "ok\n";
+        add_header Content-Type text/plain;
+    }
+
+    # Long-cache hashed assets
+    location /assets/ {
+        try_files $uri =404;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # PWA SW + manifest must never be stale-cached
+    location = /sw.js {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        try_files $uri =404;
+    }
+    location = /manifest.webmanifest {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        try_files $uri =404;
+    }
+
+    # SPA fallback — React Router owns client-side routes
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Gzip (Traefik handles TLS + brotli at the edge)
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 512;
+}
