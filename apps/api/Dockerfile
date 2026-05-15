@@ -19,10 +19,12 @@ RUN uv sync --frozen --no-dev || uv sync --no-dev
 
 FROM python:3.12-slim AS runtime
 
+ARG GIT_SHA=dev
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8000
+    PORT=8000 \
+    GIT_SHA=$GIT_SHA
 
 RUN useradd --system --uid 1000 --create-home app
 WORKDIR /app

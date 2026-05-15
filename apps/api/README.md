@@ -48,7 +48,7 @@ compose file — only the `Dockerfile` and source live here.
 - Binds `0.0.0.0:${PORT}` (defaults to `8000`). Traefik forwards HTTPS to this port.
 - Starts unattended via `uvicorn app.main:app`. No interactive setup.
 - Logs to stdout/stderr (`PYTHONUNBUFFERED=1`).
-- Health endpoint: `GET /health` (returns `{"ok": true}`).
+- Health endpoint: `GET /health` (returns `{"status": "ok", "version": "<git-sha>"}`).
 - Runs as non-root user `app` (uid 1000).
 
 **Required env vars**
