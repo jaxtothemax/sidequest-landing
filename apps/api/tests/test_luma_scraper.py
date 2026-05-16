@@ -26,13 +26,15 @@ from app.scraper.sources.luma import (
         ("http://lu.ma/dc-blockchain-summit?ref=x", "dc-blockchain-summit"),
         ("lu.ma/dc-blockchain-summit", "dc-blockchain-summit"),
         ("https://lu.ma/dc-blockchain-summit/some/sub", "dc-blockchain-summit"),
+        ("https://luma.com/ethmilan2026", "ethmilan2026"),
+        ("https://www.luma.com/ethmilan2026/", "ethmilan2026"),
     ],
 )
 def test_slug_from_url_happy(given: str, expected: str) -> None:
     assert slug_from_url(given) == expected
 
 
-@pytest.mark.parametrize("given", ["", "   ", "https://example.com/foo", "https://lu.ma/"])
+@pytest.mark.parametrize("given", ["", "   ", "https://example.com/foo", "https://lu.ma/", "https://luma.com/"])
 def test_slug_from_url_rejects(given: str) -> None:
     with pytest.raises(ValueError):
         slug_from_url(given)

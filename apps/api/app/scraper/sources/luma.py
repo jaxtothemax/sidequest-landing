@@ -59,7 +59,7 @@ def slug_from_url(url_or_slug: str) -> str:
     parsed = urlparse(value)
 
     host = (parsed.netloc or "").lower()
-    if host and "lu.ma" not in host:
+    if host and "lu.ma" not in host and "luma.com" not in host:
         raise ValueError(f"not a Luma URL: {url_or_slug!r}")
 
     # First non-empty path segment is the slug
