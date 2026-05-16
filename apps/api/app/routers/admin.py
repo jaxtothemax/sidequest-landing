@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -202,12 +202,17 @@ def update_source(
     admin: Annotated[CurrentUser, Depends(require_admin)],
     repo: Annotated[ScrapeSourcesRepo, Depends(get_scrape_sources_repo)],
 ) -> ScrapeSourceOut:
-    row = repo.update(
-        source_id,
-        url=body.url.strip() if body.url is not None else None,
-        enabled=body.enabled,
-        scrape_interval_minutes=body.scrape_interval_minutes,
-    )
+    # Use model_fields_set so we can distinguish "omitted" from "explicit null"
+    # (needed to clear scrape_interval_minutes back to NULL → manual-only).
+    sent = body.model_fields_set
+    kwargs: dict[str, Any] = {}
+    if "url" in sent and body.url is not None:
+        kwargs["url"] = body.url.strip()
+    if "enabled" in sent and body.enabled is not None:
+        kwargs["enabled"] = body.enabled
+    if "scrape_interval_minutes" in sent:
+        kwargs["scrape_interval_minutes"] = body.scrape_interval_minutes
+    row = repo.update(source_id, **kwargs)
     if row is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
