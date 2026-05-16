@@ -238,13 +238,13 @@ class ScrapeSourceCreate(BaseModel):
     url: str
     source_type: str = "luma"
     enabled: bool = True
-    scrape_interval_minutes: int | None = None
+    scrape_interval_minutes: int | None = Field(default=None, ge=1, le=10080)
 
 
 class ScrapeSourceUpdate(BaseModel):
     url: str | None = None
     enabled: bool | None = None
-    scrape_interval_minutes: int | None = None
+    scrape_interval_minutes: int | None = Field(default=None, ge=1, le=10080)
 
 
 class ScrapeSourceOut(BaseModel):

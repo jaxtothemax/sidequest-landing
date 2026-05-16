@@ -23,6 +23,21 @@ function fmtTimestamp(iso: string | null): string {
   })
 }
 
+const INTERVAL_OPTIONS: { value: string; label: string; minutes: number | null }[] = [
+  { value: 'off', label: 'Off', minutes: null },
+  { value: '15', label: 'Every 15 min', minutes: 15 },
+  { value: '60', label: 'Every hour', minutes: 60 },
+  { value: '360', label: 'Every 6 h', minutes: 360 },
+  { value: '1440', label: 'Every 24 h', minutes: 1440 },
+]
+
+function intervalValue(minutes: number | null): string {
+  if (minutes === null) return 'off'
+  // If a value not in the presets is set (e.g. manually), keep it in the
+  // select as a synthetic option so the UI doesn't silently drop it.
+  return INTERVAL_OPTIONS.some((o) => o.minutes === minutes) ? String(minutes) : String(minutes)
+}
+
 export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string }) {
   const queryClient = useQueryClient()
   const [newUrl, setNewUrl] = useState('')
@@ -52,6 +67,12 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
   const toggleMut = useMutation({
     mutationFn: (vars: { id: string; enabled: boolean }) =>
       updateScrapeSource(vars.id, { enabled: vars.enabled }),
+    onSuccess: invalidate,
+  })
+
+  const intervalMut = useMutation({
+    mutationFn: (vars: { id: string; minutes: number | null }) =>
+      updateScrapeSource(vars.id, { scrape_interval_minutes: vars.minutes }),
     onSuccess: invalidate,
   })
 
@@ -142,6 +163,12 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
                     status: <strong>{s.last_status}</strong>
                   </>
                 )}
+                {s.scrape_interval_minutes !== null && (
+                  <>
+                    {' · '}
+                    auto: <strong>every {s.scrape_interval_minutes}m</strong>
+                  </>
+                )}
                 {s.last_status === 'pending' && s.last_error && (
                   <>
                     {' · '}
@@ -152,6 +179,34 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
                 )}
               </div>
             </div>
+
+            <label className="admin-sources__interval" title="Auto-scrape interval">
+              <span className="admin-sources__interval-label">Schedule</span>
+              <select
+                value={intervalValue(s.scrape_interval_minutes)}
+                onChange={(e) => {
+                  const picked = INTERVAL_OPTIONS.find((o) => o.value === e.target.value)
+                  intervalMut.mutate({
+                    id: s.id,
+                    minutes: picked ? picked.minutes : null,
+                  })
+                }}
+                disabled={intervalMut.isPending}
+              >
+                {INTERVAL_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+                {/* Preserve any non-preset value already on the row */}
+                {s.scrape_interval_minutes !== null &&
+                  !INTERVAL_OPTIONS.some((o) => o.minutes === s.scrape_interval_minutes) && (
+                    <option value={String(s.scrape_interval_minutes)}>
+                      Every {s.scrape_interval_minutes}m (custom)
+                    </option>
+                  )}
+              </select>
+            </label>
 
             <label className="admin-sources__toggle">
               <input
@@ -193,14 +248,6 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
         </button>
       </form>
       {addError && <div className="admin__error">{addError}</div>}
-
-      <div className="admin-sources__schedule">
-        <span className="admin-sources__schedule-label">Auto-schedule</span>
-        <span className="admin-sources__pill">coming soon</span>
-        <span className="admin-sources__schedule-hint">
-          We'll let you set a per-source scrape interval here later.
-        </span>
-      </div>
     </section>
   )
 }
