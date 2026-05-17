@@ -18,6 +18,11 @@ class Settings(BaseSettings):
 
     cors_origins: str = Field(default="http://localhost:5173,http://127.0.0.1:5173")
 
+    # Scraper scheduler tick cadence — operational tuning only. The on/off
+    # switch lives in the `scheduler_settings` table and is controlled from
+    # the admin UI.
+    scraper_scheduler_tick_seconds: int = Field(default=60)
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
