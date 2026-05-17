@@ -323,7 +323,13 @@ def trigger_scrape(
         events_updated=total.events_updated,
         events_failed=total.events_failed,
         failed_events=[
-            {"api_id": fe.api_id, "reason": fe.reason, "detail": fe.detail}
+            {
+                "api_id": fe.api_id,
+                "reason": fe.reason,
+                "detail": fe.detail,
+                "url": fe.url,
+                "title": fe.title,
+            }
             for fe in total.failed_events
         ],
     )

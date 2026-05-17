@@ -264,11 +264,18 @@ class ScrapeSourceOut(BaseModel):
 
 
 class FailedEventOut(BaseModel):
-    """A single entry from a scraped source that couldn't be persisted."""
+    """A single entry from a scraped source that couldn't be persisted.
+
+    `url` and `title` are best-effort — present whenever Luma returned
+    them in the malformed entry, so admins can click through and
+    recreate the event manually.
+    """
 
     api_id: str | None = None
     reason: str  # 'missing_required' | 'exception'
     detail: str | None = None
+    url: str | None = None
+    title: str | None = None
 
 
 class SchedulerSettingsOut(BaseModel):

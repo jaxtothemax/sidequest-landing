@@ -274,6 +274,9 @@ def test_trigger_scrape_surfaces_failed_events(monkeypatch) -> None:
         assert failed["reason"] == "missing_required"
         assert failed["detail"] is not None
         assert "start_at" in failed["detail"]
+        # Best-effort context for admins — the entry still had a slug + name
+        assert failed["url"] == "https://lu.ma/slug-e2"
+        assert failed["title"] == "Bad"
     finally:
         _teardown_admin_routes()
 

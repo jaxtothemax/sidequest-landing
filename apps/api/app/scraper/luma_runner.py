@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 
-from app.scraper.sources.luma import LumaScraper, normalize_event
+from app.scraper.sources.luma import LUMA_WEB_BASE, LumaScraper, normalize_event
 from app.services.admin_repo import EventsAdminRepo
 
 logger = logging.getLogger(__name__)
@@ -21,10 +21,18 @@ logger = logging.getLogger(__name__)
 @dataclass
 class FailedEvent:
     """A Luma entry that didn't make it into the DB. `api_id` may be None
-    if the entry was malformed enough to lack one."""
+    if the entry was malformed enough to lack one. `url` + `title` are
+    best-effort — useful for admins to inspect/recreate the event manually."""
     api_id: str | None
     reason: str  # 'missing_required' | 'exception'
     detail: str | None = None
+    url: str | None = None
+    title: str | None = None
+
+
+def _entry_url(event: dict[str, Any]) -> str | None:
+    slug = event.get("url")
+    return f"{LUMA_WEB_BASE}/{slug}" if slug else None
 
 
 @dataclass
@@ -86,7 +94,10 @@ def run_for_source(
 
     stats = SourceScrapeStats()
     for entry in entries:
-        api_id = (entry.get("event") or {}).get("api_id")
+        event = entry.get("event") or {}
+        api_id = event.get("api_id")
+        url = _entry_url(event)
+        title = event.get("name")
         try:
             details = details_map.get(api_id) if api_id else None
             row = normalize_event(
@@ -97,7 +108,6 @@ def run_for_source(
             )
             if row is None:
                 stats.events_failed += 1
-                event = entry.get("event") or {}
                 missing = [
                     k for k in ("api_id", "name", "start_at") if not event.get(k)
                 ]
@@ -106,6 +116,8 @@ def run_for_source(
                         api_id=api_id,
                         reason="missing_required",
                         detail=f"missing fields: {', '.join(missing)}" if missing else None,
+                        url=url,
+                        title=title,
                     )
                 )
                 continue
@@ -123,7 +135,13 @@ def run_for_source(
             logger.exception("luma_runner.event_failed source_url=%s", source_url)
             stats.events_failed += 1
             stats.failed_events.append(
-                FailedEvent(api_id=api_id, reason="exception", detail=str(exc)[:200])
+                FailedEvent(
+                    api_id=api_id,
+                    reason="exception",
+                    detail=str(exc)[:200],
+                    url=url,
+                    title=title,
+                )
             )
 
     logger.info(
