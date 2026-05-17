@@ -10,7 +10,7 @@ the source's last_scrape_status = "error" by the caller.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from app.scraper.sources.luma import LumaScraper, normalize_event
 from app.services.admin_repo import EventsAdminRepo
@@ -19,17 +19,28 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class FailedEvent:
+    """A Luma entry that didn't make it into the DB. `api_id` may be None
+    if the entry was malformed enough to lack one."""
+    api_id: str | None
+    reason: str  # 'missing_required' | 'exception'
+    detail: str | None = None
+
+
+@dataclass
 class SourceScrapeStats:
     events_added: int = 0
     events_updated: int = 0
     events_skipped_locked: int = 0
     events_failed: int = 0
+    failed_events: list[FailedEvent] = field(default_factory=list)
 
     def merge(self, other: SourceScrapeStats) -> None:
         self.events_added += other.events_added
         self.events_updated += other.events_updated
         self.events_skipped_locked += other.events_skipped_locked
         self.events_failed += other.events_failed
+        self.failed_events.extend(other.failed_events)
 
 
 def run_for_source(
@@ -75,8 +86,8 @@ def run_for_source(
 
     stats = SourceScrapeStats()
     for entry in entries:
+        api_id = (entry.get("event") or {}).get("api_id")
         try:
-            api_id = (entry.get("event") or {}).get("api_id")
             details = details_map.get(api_id) if api_id else None
             row = normalize_event(
                 entry,
@@ -86,6 +97,17 @@ def run_for_source(
             )
             if row is None:
                 stats.events_failed += 1
+                event = entry.get("event") or {}
+                missing = [
+                    k for k in ("api_id", "name", "start_at") if not event.get(k)
+                ]
+                stats.failed_events.append(
+                    FailedEvent(
+                        api_id=api_id,
+                        reason="missing_required",
+                        detail=f"missing fields: {', '.join(missing)}" if missing else None,
+                    )
+                )
                 continue
 
             existed = events_repo.get_event(row["id"]) is not None
@@ -97,9 +119,12 @@ def run_for_source(
                 stats.events_updated += 1
             else:
                 stats.events_added += 1
-        except Exception:
+        except Exception as exc:
             logger.exception("luma_runner.event_failed source_url=%s", source_url)
             stats.events_failed += 1
+            stats.failed_events.append(
+                FailedEvent(api_id=api_id, reason="exception", detail=str(exc)[:200])
+            )
 
     logger.info(
         "luma_runner.done source_url=%s added=%d updated=%d skipped_locked=%d failed=%d",

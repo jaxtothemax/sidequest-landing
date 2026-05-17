@@ -5,7 +5,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   addScrapeSource,
   deleteScrapeSource,
+  getSchedulerSettings,
   listScrapeSources,
+  setSchedulerEnabled,
   triggerScrape,
   updateScrapeSource,
   type ScrapeSource,
@@ -44,6 +46,9 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
   const [addError, setAddError] = useState<string | null>(null)
   const [runMessage, setRunMessage] = useState<string | null>(null)
   const [runIsError, setRunIsError] = useState(false)
+  const [runFailedEvents, setRunFailedEvents] = useState<
+    { api_id: string | null; reason: string; detail: string | null }[]
+  >([])
 
   const q = useQuery({
     queryKey: ['admin', 'sources', conferenceId],
@@ -51,8 +56,19 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
     enabled: !!conferenceId,
   })
 
+  const schedQ = useQuery({
+    queryKey: ['admin', 'scheduler'],
+    queryFn: getSchedulerSettings,
+  })
+
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ['admin', 'sources', conferenceId] })
+
+  const schedMut = useMutation({
+    mutationFn: (enabled: boolean) => setSchedulerEnabled(enabled),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['admin', 'scheduler'] }),
+  })
 
   const addMut = useMutation({
     mutationFn: (url: string) => addScrapeSource(conferenceId, { url }),
@@ -86,11 +102,13 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
     onSuccess: (r) => {
       setRunIsError(false)
       setRunMessage(r.message)
+      setRunFailedEvents(r.failed_events ?? [])
       invalidate()
     },
     onError: (e: Error) => {
       setRunIsError(true)
       setRunMessage(e.message)
+      setRunFailedEvents([])
     },
   })
 
@@ -107,8 +125,32 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
 
   if (!conferenceId) return null
 
+  const sched = schedQ.data
+  const schedEnabled = sched?.enabled ?? false
+  const schedTick = sched?.tick_seconds ?? 60
+
   return (
     <section className="admin-sources">
+      <div className="admin-sources__scheduler">
+        <label className="admin-sources__scheduler-toggle">
+          <input
+            type="checkbox"
+            checked={schedEnabled}
+            disabled={schedQ.isLoading || schedMut.isPending}
+            onChange={(e) => schedMut.mutate(e.target.checked)}
+          />
+          <span>
+            Auto-scrape scheduler:{' '}
+            <strong>{schedEnabled ? 'on' : 'off'}</strong>
+          </span>
+        </label>
+        <span className="admin-sources__scheduler-hint">
+          {schedEnabled
+            ? `Checks for due sources every ${schedTick}s (global, across all conferences).`
+            : 'Toggle on to start running enabled sources on their configured interval.'}
+        </span>
+      </div>
+
       <header className="admin-sources__head">
         <div>
           <div className="admin-sources__title">Luma sources</div>
@@ -136,6 +178,30 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
         <div className={`admin-sources__run ${runIsError ? 'is-error' : ''}`}>
           {runMessage}
         </div>
+      )}
+
+      {runFailedEvents.length > 0 && (
+        <details className="admin-sources__failed">
+          <summary>
+            {runFailedEvents.length} event{runFailedEvents.length === 1 ? '' : 's'} couldn't
+            be saved — click for details
+          </summary>
+          <ul>
+            {runFailedEvents.map((f, i) => (
+              <li key={`${f.api_id ?? 'noid'}-${i}`}>
+                <code>{f.api_id ?? '(no id)'}</code>
+                {' · '}
+                <strong>{f.reason}</strong>
+                {f.detail && (
+                  <>
+                    {' — '}
+                    <span>{f.detail}</span>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
 
       <ul className="admin-sources__list">

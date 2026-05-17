@@ -1,12 +1,37 @@
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.routers import admin, auth, chat, conferences, curate, events, health, me
+from app.scraper.scheduler import Scheduler, build_scheduler
+from app.services.admin_repo import get_events_admin_repo
+from app.services.scheduler_settings_repo import get_scheduler_settings_repo
+from app.services.scrape_sources_repo import get_scrape_sources_repo
+
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
-app = FastAPI(title="sidequest-api", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    scheduler: Scheduler = build_scheduler(
+        settings,
+        sources_repo=get_scrape_sources_repo(),
+        events_repo=get_events_admin_repo(),
+        settings_repo=get_scheduler_settings_repo(),
+    )
+    await scheduler.start()
+    try:
+        yield
+    finally:
+        await scheduler.stop()
+
+
+app = FastAPI(title="sidequest-api", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

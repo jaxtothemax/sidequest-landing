@@ -245,6 +245,39 @@ def test_trigger_scrape_runs_real_scraper_via_monkeypatch(monkeypatch) -> None:
         _teardown_admin_routes()
 
 
+def test_trigger_scrape_surfaces_failed_events(monkeypatch) -> None:
+    """A Luma entry missing start_at should land in failed_events with a useful reason."""
+    events_repo, sources_repo = _setup_admin_routes()
+    try:
+        sources_repo.create(
+            conference_id="token2049", url="https://lu.ma/token2049", enabled=True
+        )
+
+        good = _event("e1", "Good", 9)
+        bad = _event("e2", "Bad", 10)
+        bad["event"]["start_at"] = None  # forces normalize_event → None
+
+        handler = _build_handler(events_by_calendar={"cal_xyz": [good, bad]})
+        monkeypatch.setattr(
+            "app.scraper.luma_runner.LumaScraper", lambda: _scraper_with(handler)
+        )
+
+        client = TestClient(app)
+        resp = client.post("/api/admin/conferences/token2049/scrape")
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        assert body["events_added"] == 1
+        assert body["events_failed"] == 1
+        assert len(body["failed_events"]) == 1
+        failed = body["failed_events"][0]
+        assert failed["api_id"] == "e2"
+        assert failed["reason"] == "missing_required"
+        assert failed["detail"] is not None
+        assert "start_at" in failed["detail"]
+    finally:
+        _teardown_admin_routes()
+
+
 def test_trigger_scrape_records_error_when_source_fails(monkeypatch) -> None:
     events_repo, sources_repo = _setup_admin_routes()
     try:
