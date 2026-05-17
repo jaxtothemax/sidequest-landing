@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.deps import CurrentUser, require_user
-from app.models.schemas import ClaimRequest, ClaimResponse, UnlockResponse
+from app.models.schemas import ClaimRequest, ClaimResponse, UnlockRequest, UnlockResponse
 from app.services.curations_store import CurationsStore, get_curations_store
 from app.services.entitlements_store import EntitlementsStore, get_entitlements_store
 
@@ -47,9 +47,10 @@ def claim(
 
 @router.post("/unlock", response_model=UnlockResponse)
 def unlock(
+    body: UnlockRequest,
     user: Annotated[CurrentUser, Depends(require_user)],
     store: Annotated[EntitlementsStore, Depends(get_entitlements_store)],
 ) -> UnlockResponse:
-    # Stub: no payment integration yet — see plan §"Payment provider integration".
-    store.unlock(user.id, provider="stub")
+    # Stub kept until Polar webhook lands — see plan Phase 4 for removal.
+    store.unlock_user(user.id, body.conference_id, provider="stub")
     return UnlockResponse(unlocked=True)

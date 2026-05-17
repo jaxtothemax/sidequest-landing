@@ -125,11 +125,16 @@ def test_full_flow_anon_curate_claim_unlock_schedule() -> None:
         )
         assert r.status_code == 409
 
-        # 4. Unlock
-        r = client.post("/api/unlock", headers={"Authorization": "Bearer dummy"})
+        # 4. Unlock (per-conference)
+        r = client.post(
+            "/api/unlock",
+            json={"conference_id": "token2049"},
+            headers={"Authorization": "Bearer dummy"},
+        )
         assert r.status_code == 200
         assert r.json() == {"ok": True, "unlocked": True}
-        assert ent_store.get(USER_ID)["unlocked"] is True
+        ent = ent_store.get_for_user(USER_ID, "token2049")
+        assert ent is not None and ent["unlocked"] is True
 
         # 5. /api/me/schedule — returns enriched events sorted by start
         r = client.get("/api/me/schedule", headers={"Authorization": "Bearer dummy"})
@@ -147,6 +152,35 @@ def test_full_flow_anon_curate_claim_unlock_schedule() -> None:
         assert first["rationale"] == "Stablecoin founders."
         assert first["priority"] == "must"
         assert first["inSchedule"] is True
+    finally:
+        _teardown()
+
+
+def test_entitlement_claim_moves_anon_to_user() -> None:
+    """Anonymous payment → signup claim → entitlement lives under user_id."""
+    _, ent_store = _setup()
+    try:
+        # Simulate Polar webhook landing on anonymous_entitlements
+        ent_store.unlock_anon(
+            ANON_ID, "token2049", provider="polar", provider_ref="ord_test_123"
+        )
+        assert ent_store.get_for_anon(ANON_ID, "token2049")["unlocked"] is True
+        assert ent_store.get_for_user(USER_ID, "token2049") is None
+
+        # User signs up and claims
+        claimed = ent_store.claim(ANON_ID, USER_ID)
+        assert claimed == ["token2049"]
+
+        # Entitlement now lives on the user, preserving Polar provenance
+        user_ent = ent_store.get_for_user(USER_ID, "token2049")
+        assert user_ent is not None
+        assert user_ent["unlocked"] is True
+        assert user_ent["provider"] == "polar"
+        assert user_ent["provider_ref"] == "ord_test_123"
+        assert user_ent["source_anon_id"] == ANON_ID
+
+        # Re-claiming is a no-op (already claimed)
+        assert ent_store.claim(ANON_ID, USER_ID) == []
     finally:
         _teardown()
 
@@ -190,7 +224,7 @@ def test_protected_routes_require_auth() -> None:
     r = client.get("/api/me/schedule")
     assert r.status_code == 401
 
-    r = client.post("/api/unlock")
+    r = client.post("/api/unlock", json={"conference_id": "token2049"})
     assert r.status_code == 401
 
     r = client.post("/api/auth/claim", json={"anon_id": ANON_ID})

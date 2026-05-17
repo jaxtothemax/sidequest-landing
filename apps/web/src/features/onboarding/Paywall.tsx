@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { Check, Lock, Zap } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 
+import { createCheckout } from '../../api/checkout'
 import SymbolSVG from '../../assets/Symbol.svg'
 import { EventCard } from '../../components/EventCard'
 import type { SeedEvent } from '../../data/seedEvents'
@@ -11,9 +11,11 @@ import { useOnboarding } from '../../stores/onboardingStore'
 const FALLBACK_PREVIEW_LIMIT = 6
 
 export default function Paywall() {
-  const navigate = useNavigate()
   const { events } = useEvents()
   const curatedSchedule = useOnboarding((s) => s.curatedSchedule)
+  const conferenceId = useOnboarding((s) => s.state.conferenceId)
+  const [payState, setPayState] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [payError, setPayError] = useState<string | null>(null)
 
   // Build the schedule preview shown on the left:
   // - If the LLM curated a schedule, show those events.
@@ -95,7 +97,18 @@ export default function Paywall() {
     })
   }
 
-  const onPay = () => navigate('/paywall/thanks')
+  const onPay = async () => {
+    if (payState === 'loading') return
+    setPayState('loading')
+    setPayError(null)
+    try {
+      const { checkout_url } = await createCheckout(conferenceId)
+      window.location.href = checkout_url
+    } catch (err) {
+      setPayState('error')
+      setPayError(err instanceof Error ? err.message : 'Could not start checkout')
+    }
+  }
 
   return (
     <div className="sq-app">
@@ -192,7 +205,13 @@ export default function Paywall() {
               <span className="paywall__amount">9.99</span>
             </div>
             <div className="paywall__price-sub">One-time · Lifetime access for this conference</div>
-            <button className="paywall__cta" type="button" onClick={onPay}>
+            <button
+              className="paywall__cta"
+              type="button"
+              onClick={onPay}
+              disabled={payState === 'loading'}
+              aria-busy={payState === 'loading'}
+            >
               <svg
                 width="16"
                 height="20"
@@ -206,15 +225,33 @@ export default function Paywall() {
                 />
               </svg>
               <span>
-                Buy with&nbsp;<span className="paywall__cta-pay">Pay</span>
+                {payState === 'loading' ? (
+                  'Opening checkout…'
+                ) : (
+                  <>
+                    Buy with&nbsp;<span className="paywall__cta-pay">Pay</span>
+                  </>
+                )}
               </span>
             </button>
-            <button className="paywall__alt" type="button" onClick={onPay}>
+            <button
+              className="paywall__alt"
+              type="button"
+              onClick={onPay}
+              disabled={payState === 'loading'}
+            >
               Other payment methods
             </button>
-            <div className="paywall__footer">
-              Secure checkout · Cancel anytime · Powered by Stripe
-            </div>
+            {payError && (
+              <div className="paywall__footer" role="alert" style={{ color: '#E62C5A' }}>
+                {payError}
+              </div>
+            )}
+            {!payError && (
+              <div className="paywall__footer">
+                Secure checkout · Cancel anytime · Powered by Polar
+              </div>
+            )}
           </div>
         </div>
       </div>
