@@ -107,9 +107,33 @@ class ClaimResponse(BaseModel):
     user_curation_id: str
 
 
+class UnlockRequest(BaseModel):
+    conference_id: str
+
+
 class UnlockResponse(BaseModel):
     ok: bool = True
     unlocked: bool
+
+
+class EntitlementRead(BaseModel):
+    unlocked: bool
+    conference_id: str
+    provider: str | None = None
+
+
+# ============================================================================
+# Checkout (Polar)
+# ============================================================================
+
+
+class CheckoutCreateRequest(BaseModel):
+    anon_id: str
+    conference_id: str
+
+
+class CheckoutCreateResponse(BaseModel):
+    checkout_url: str
 
 
 class ScheduleItem(BaseModel):

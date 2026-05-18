@@ -1,4 +1,6 @@
+import json
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -18,6 +20,14 @@ class Settings(BaseSettings):
 
     cors_origins: str = Field(default="http://localhost:5173,http://127.0.0.1:5173")
 
+    # Polar.sh payments
+    polar_access_token: str = Field(default="")
+    polar_webhook_secret: str = Field(default="")
+    polar_server: Literal["sandbox", "production"] = Field(default="sandbox")
+    # JSON map: {"token2049": "<polar-product-uuid>", ...}
+    polar_product_ids: str = Field(default="{}")
+    public_web_base_url: str = Field(default="http://localhost:5173")
+
     # Scraper scheduler tick cadence — operational tuning only. The on/off
     # switch lives in the `scheduler_settings` table and is controlled from
     # the admin UI.
@@ -26,6 +36,14 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def polar_product_id_map(self) -> dict[str, str]:
+        try:
+            parsed = json.loads(self.polar_product_ids or "{}")
+        except json.JSONDecodeError:
+            return {}
+        return {str(k): str(v) for k, v in parsed.items()} if isinstance(parsed, dict) else {}
 
     @property
     def jwks_url(self) -> str:
