@@ -76,4 +76,15 @@ def _build_client() -> PolarClient:
 
 
 def get_polar_client() -> PolarClient:
-    return _build_client()
+    """FastAPI dependency. Converts misconfig into a 503 so the response
+    actually carries CORS headers — an unhandled exception leaks through
+    Starlette as a bare 500 and the browser surfaces it as a CORS error."""
+    try:
+        return _build_client()
+    except PolarConfigError as e:
+        from fastapi import HTTPException, status
+
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(e),
+        ) from e
