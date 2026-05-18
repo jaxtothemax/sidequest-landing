@@ -104,6 +104,8 @@ export type FailedEvent = {
   api_id: string | null
   reason: string
   detail: string | null
+  url: string | null
+  title: string | null
 }
 
 export type ScrapeRunResult = {

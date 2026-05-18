@@ -251,8 +251,12 @@ def normalize_event(
     ends_at = event.get("end_at") or starts_at  # some Luma events lack end_at
 
     if not (api_id and title and starts_at):
-        logger.warning("luma.normalize skipped api_id=%s title=%s starts_at=%s",
-                       api_id, title, starts_at)
+        slug = event.get("url")
+        url = f"{LUMA_WEB_BASE}/{slug}" if slug else None
+        logger.warning(
+            "luma.normalize skipped api_id=%s title=%s starts_at=%s url=%s",
+            api_id, title, starts_at, url,
+        )
         return None
 
     geo = event.get("geo_address_info") or {}

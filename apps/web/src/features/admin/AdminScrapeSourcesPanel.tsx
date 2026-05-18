@@ -47,7 +47,13 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
   const [runMessage, setRunMessage] = useState<string | null>(null)
   const [runIsError, setRunIsError] = useState(false)
   const [runFailedEvents, setRunFailedEvents] = useState<
-    { api_id: string | null; reason: string; detail: string | null }[]
+    {
+      api_id: string | null
+      reason: string
+      detail: string | null
+      url: string | null
+      title: string | null
+    }[]
   >([])
 
   const q = useQuery({
@@ -187,19 +193,33 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
             be saved — click for details
           </summary>
           <ul>
-            {runFailedEvents.map((f, i) => (
-              <li key={`${f.api_id ?? 'noid'}-${i}`}>
-                <code>{f.api_id ?? '(no id)'}</code>
-                {' · '}
-                <strong>{f.reason}</strong>
-                {f.detail && (
-                  <>
-                    {' — '}
-                    <span>{f.detail}</span>
-                  </>
-                )}
-              </li>
-            ))}
+            {runFailedEvents.map((f, i) => {
+              const label = f.title ?? f.api_id ?? '(no id)'
+              return (
+                <li key={`${f.api_id ?? 'noid'}-${i}`}>
+                  {f.url ? (
+                    <a
+                      href={f.url}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="admin-sources__failed-link"
+                    >
+                      {label} ↗
+                    </a>
+                  ) : (
+                    <span>{label}</span>
+                  )}
+                  {' · '}
+                  <strong>{f.reason}</strong>
+                  {f.detail && (
+                    <>
+                      {' — '}
+                      <span>{f.detail}</span>
+                    </>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         </details>
       )}
