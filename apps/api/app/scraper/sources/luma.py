@@ -59,7 +59,7 @@ def slug_from_url(url_or_slug: str) -> str:
     parsed = urlparse(value)
 
     host = (parsed.netloc or "").lower()
-    if host and "lu.ma" not in host:
+    if host and "lu.ma" not in host and "luma.com" not in host:
         raise ValueError(f"not a Luma URL: {url_or_slug!r}")
 
     # First non-empty path segment is the slug
@@ -251,8 +251,12 @@ def normalize_event(
     ends_at = event.get("end_at") or starts_at  # some Luma events lack end_at
 
     if not (api_id and title and starts_at):
-        logger.warning("luma.normalize skipped api_id=%s title=%s starts_at=%s",
-                       api_id, title, starts_at)
+        slug = event.get("url")
+        url = f"{LUMA_WEB_BASE}/{slug}" if slug else None
+        logger.warning(
+            "luma.normalize skipped api_id=%s title=%s starts_at=%s url=%s",
+            api_id, title, starts_at, url,
+        )
         return None
 
     geo = event.get("geo_address_info") or {}

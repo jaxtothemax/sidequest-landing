@@ -5,7 +5,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   addScrapeSource,
   deleteScrapeSource,
+  getSchedulerSettings,
   listScrapeSources,
+  setSchedulerEnabled,
   triggerScrape,
   updateScrapeSource,
   type ScrapeSource,
@@ -23,12 +25,36 @@ function fmtTimestamp(iso: string | null): string {
   })
 }
 
+const INTERVAL_OPTIONS: { value: string; label: string; minutes: number | null }[] = [
+  { value: 'off', label: 'Off', minutes: null },
+  { value: '15', label: 'Every 15 min', minutes: 15 },
+  { value: '60', label: 'Every hour', minutes: 60 },
+  { value: '360', label: 'Every 6 h', minutes: 360 },
+  { value: '1440', label: 'Every 24 h', minutes: 1440 },
+]
+
+function intervalValue(minutes: number | null): string {
+  if (minutes === null) return 'off'
+  // If a value not in the presets is set (e.g. manually), keep it in the
+  // select as a synthetic option so the UI doesn't silently drop it.
+  return INTERVAL_OPTIONS.some((o) => o.minutes === minutes) ? String(minutes) : String(minutes)
+}
+
 export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string }) {
   const queryClient = useQueryClient()
   const [newUrl, setNewUrl] = useState('')
   const [addError, setAddError] = useState<string | null>(null)
   const [runMessage, setRunMessage] = useState<string | null>(null)
   const [runIsError, setRunIsError] = useState(false)
+  const [runFailedEvents, setRunFailedEvents] = useState<
+    {
+      api_id: string | null
+      reason: string
+      detail: string | null
+      url: string | null
+      title: string | null
+    }[]
+  >([])
 
   const q = useQuery({
     queryKey: ['admin', 'sources', conferenceId],
@@ -36,8 +62,19 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
     enabled: !!conferenceId,
   })
 
+  const schedQ = useQuery({
+    queryKey: ['admin', 'scheduler'],
+    queryFn: getSchedulerSettings,
+  })
+
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ['admin', 'sources', conferenceId] })
+
+  const schedMut = useMutation({
+    mutationFn: (enabled: boolean) => setSchedulerEnabled(enabled),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['admin', 'scheduler'] }),
+  })
 
   const addMut = useMutation({
     mutationFn: (url: string) => addScrapeSource(conferenceId, { url }),
@@ -55,6 +92,12 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
     onSuccess: invalidate,
   })
 
+  const intervalMut = useMutation({
+    mutationFn: (vars: { id: string; minutes: number | null }) =>
+      updateScrapeSource(vars.id, { scrape_interval_minutes: vars.minutes }),
+    onSuccess: invalidate,
+  })
+
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteScrapeSource(id),
     onSuccess: invalidate,
@@ -65,11 +108,13 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
     onSuccess: (r) => {
       setRunIsError(false)
       setRunMessage(r.message)
+      setRunFailedEvents(r.failed_events ?? [])
       invalidate()
     },
     onError: (e: Error) => {
       setRunIsError(true)
       setRunMessage(e.message)
+      setRunFailedEvents([])
     },
   })
 
@@ -86,8 +131,32 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
 
   if (!conferenceId) return null
 
+  const sched = schedQ.data
+  const schedEnabled = sched?.enabled ?? false
+  const schedTick = sched?.tick_seconds ?? 60
+
   return (
     <section className="admin-sources">
+      <div className="admin-sources__scheduler">
+        <label className="admin-sources__scheduler-toggle">
+          <input
+            type="checkbox"
+            checked={schedEnabled}
+            disabled={schedQ.isLoading || schedMut.isPending}
+            onChange={(e) => schedMut.mutate(e.target.checked)}
+          />
+          <span>
+            Auto-scrape scheduler:{' '}
+            <strong>{schedEnabled ? 'on' : 'off'}</strong>
+          </span>
+        </label>
+        <span className="admin-sources__scheduler-hint">
+          {schedEnabled
+            ? `Checks for due sources every ${schedTick}s (global, across all conferences).`
+            : 'Toggle on to start running enabled sources on their configured interval.'}
+        </span>
+      </div>
+
       <header className="admin-sources__head">
         <div>
           <div className="admin-sources__title">Luma sources</div>
@@ -117,6 +186,44 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
         </div>
       )}
 
+      {runFailedEvents.length > 0 && (
+        <details className="admin-sources__failed">
+          <summary>
+            {runFailedEvents.length} event{runFailedEvents.length === 1 ? '' : 's'} couldn't
+            be saved — click for details
+          </summary>
+          <ul>
+            {runFailedEvents.map((f, i) => {
+              const label = f.title ?? f.api_id ?? '(no id)'
+              return (
+                <li key={`${f.api_id ?? 'noid'}-${i}`}>
+                  {f.url ? (
+                    <a
+                      href={f.url}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="admin-sources__failed-link"
+                    >
+                      {label} ↗
+                    </a>
+                  ) : (
+                    <span>{label}</span>
+                  )}
+                  {' · '}
+                  <strong>{f.reason}</strong>
+                  {f.detail && (
+                    <>
+                      {' — '}
+                      <span>{f.detail}</span>
+                    </>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </details>
+      )}
+
       <ul className="admin-sources__list">
         {q.isLoading && <li className="admin-sources__empty">Loading…</li>}
         {!q.isLoading && (q.data?.length ?? 0) === 0 && (
@@ -142,6 +249,12 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
                     status: <strong>{s.last_status}</strong>
                   </>
                 )}
+                {s.scrape_interval_minutes !== null && (
+                  <>
+                    {' · '}
+                    auto: <strong>every {s.scrape_interval_minutes}m</strong>
+                  </>
+                )}
                 {s.last_status === 'pending' && s.last_error && (
                   <>
                     {' · '}
@@ -152,6 +265,34 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
                 )}
               </div>
             </div>
+
+            <label className="admin-sources__interval" title="Auto-scrape interval">
+              <span className="admin-sources__interval-label">Schedule</span>
+              <select
+                value={intervalValue(s.scrape_interval_minutes)}
+                onChange={(e) => {
+                  const picked = INTERVAL_OPTIONS.find((o) => o.value === e.target.value)
+                  intervalMut.mutate({
+                    id: s.id,
+                    minutes: picked ? picked.minutes : null,
+                  })
+                }}
+                disabled={intervalMut.isPending}
+              >
+                {INTERVAL_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+                {/* Preserve any non-preset value already on the row */}
+                {s.scrape_interval_minutes !== null &&
+                  !INTERVAL_OPTIONS.some((o) => o.minutes === s.scrape_interval_minutes) && (
+                    <option value={String(s.scrape_interval_minutes)}>
+                      Every {s.scrape_interval_minutes}m (custom)
+                    </option>
+                  )}
+              </select>
+            </label>
 
             <label className="admin-sources__toggle">
               <input
@@ -193,14 +334,6 @@ export function AdminScrapeSourcesPanel({ conferenceId }: { conferenceId: string
         </button>
       </form>
       {addError && <div className="admin__error">{addError}</div>}
-
-      <div className="admin-sources__schedule">
-        <span className="admin-sources__schedule-label">Auto-schedule</span>
-        <span className="admin-sources__pill">coming soon</span>
-        <span className="admin-sources__schedule-hint">
-          We'll let you set a per-source scrape interval here later.
-        </span>
-      </div>
     </section>
   )
 }

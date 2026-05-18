@@ -262,13 +262,13 @@ class ScrapeSourceCreate(BaseModel):
     url: str
     source_type: str = "luma"
     enabled: bool = True
-    scrape_interval_minutes: int | None = None
+    scrape_interval_minutes: int | None = Field(default=None, ge=1, le=10080)
 
 
 class ScrapeSourceUpdate(BaseModel):
     url: str | None = None
     enabled: bool | None = None
-    scrape_interval_minutes: int | None = None
+    scrape_interval_minutes: int | None = Field(default=None, ge=1, le=10080)
 
 
 class ScrapeSourceOut(BaseModel):
@@ -287,6 +287,32 @@ class ScrapeSourceOut(BaseModel):
     updated_at: datetime | None = None
 
 
+class FailedEventOut(BaseModel):
+    """A single entry from a scraped source that couldn't be persisted.
+
+    `url` and `title` are best-effort — present whenever Luma returned
+    them in the malformed entry, so admins can click through and
+    recreate the event manually.
+    """
+
+    api_id: str | None = None
+    reason: str  # 'missing_required' | 'exception'
+    detail: str | None = None
+    url: str | None = None
+    title: str | None = None
+
+
+class SchedulerSettingsOut(BaseModel):
+    """Returned by GET/PUT /api/admin/scheduler."""
+
+    enabled: bool
+    tick_seconds: int
+
+
+class SchedulerSettingsUpdate(BaseModel):
+    enabled: bool
+
+
 class ScrapeRunResult(BaseModel):
     """Returned by POST /api/admin/conferences/{id}/scrape."""
 
@@ -296,6 +322,8 @@ class ScrapeRunResult(BaseModel):
     sources_failed: int = 0
     events_added: int = 0
     events_updated: int = 0
+    events_failed: int = 0
+    failed_events: list[FailedEventOut] = []
 
 
 # ============================================================================

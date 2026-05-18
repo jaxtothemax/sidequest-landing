@@ -100,6 +100,14 @@ export type ScrapeSource = {
   updated_at: string | null
 }
 
+export type FailedEvent = {
+  api_id: string | null
+  reason: string
+  detail: string | null
+  url: string | null
+  title: string | null
+}
+
 export type ScrapeRunResult = {
   ok: boolean
   message: string
@@ -107,6 +115,8 @@ export type ScrapeRunResult = {
   sources_failed: number
   events_added: number
   events_updated: number
+  events_failed: number
+  failed_events: FailedEvent[]
 }
 
 export function listScrapeSources(conferenceId: string): Promise<ScrapeSource[]> {
@@ -146,6 +156,24 @@ export function triggerScrape(conferenceId: string): Promise<ScrapeRunResult> {
     `/api/admin/conferences/${encodeURIComponent(conferenceId)}/scrape`,
     { method: 'POST' },
   )
+}
+
+// ---------- scheduler ----------
+
+export type SchedulerSettings = {
+  enabled: boolean
+  tick_seconds: number
+}
+
+export function getSchedulerSettings(): Promise<SchedulerSettings> {
+  return apiFetch<SchedulerSettings>('/api/admin/scheduler')
+}
+
+export function setSchedulerEnabled(enabled: boolean): Promise<SchedulerSettings> {
+  return apiFetch<SchedulerSettings>('/api/admin/scheduler', {
+    method: 'PUT',
+    body: JSON.stringify({ enabled }),
+  })
 }
 
 // ---------- events ----------

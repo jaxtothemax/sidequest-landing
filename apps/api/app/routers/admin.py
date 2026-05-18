@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.deps import CurrentUser, require_admin
+from app.config import get_settings
 from app.models.schemas import (
     AdminConferenceUpsert,
     AdminEventCreate,
@@ -13,6 +14,8 @@ from app.models.schemas import (
     AdminEventUpdate,
     ConferenceOut,
     LockRequest,
+    SchedulerSettingsOut,
+    SchedulerSettingsUpdate,
     ScrapeRunResult,
     ScrapeSourceCreate,
     ScrapeSourceOut,
@@ -21,6 +24,10 @@ from app.models.schemas import (
 from app.scraper.luma_runner import SourceScrapeStats, run_for_source
 from app.services.admin_repo import EventsAdminRepo, get_events_admin_repo
 from app.services.catalog import CatalogRepo, get_catalog_repo
+from app.services.scheduler_settings_repo import (
+    SchedulerSettingsRepo,
+    get_scheduler_settings_repo,
+)
 from app.services.scrape_sources_repo import (
     ScrapeSourcesRepo,
     get_scrape_sources_repo,
@@ -202,12 +209,17 @@ def update_source(
     admin: Annotated[CurrentUser, Depends(require_admin)],
     repo: Annotated[ScrapeSourcesRepo, Depends(get_scrape_sources_repo)],
 ) -> ScrapeSourceOut:
-    row = repo.update(
-        source_id,
-        url=body.url.strip() if body.url is not None else None,
-        enabled=body.enabled,
-        scrape_interval_minutes=body.scrape_interval_minutes,
-    )
+    # Use model_fields_set so we can distinguish "omitted" from "explicit null"
+    # (needed to clear scrape_interval_minutes back to NULL → manual-only).
+    sent = body.model_fields_set
+    kwargs: dict[str, Any] = {}
+    if "url" in sent and body.url is not None:
+        kwargs["url"] = body.url.strip()
+    if "enabled" in sent and body.enabled is not None:
+        kwargs["enabled"] = body.enabled
+    if "scrape_interval_minutes" in sent:
+        kwargs["scrape_interval_minutes"] = body.scrape_interval_minutes
+    row = repo.update(source_id, **kwargs)
     if row is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -309,4 +321,47 @@ def trigger_scrape(
         sources_failed=failed,
         events_added=total.events_added,
         events_updated=total.events_updated,
+        events_failed=total.events_failed,
+        failed_events=[
+            {
+                "api_id": fe.api_id,
+                "reason": fe.reason,
+                "detail": fe.detail,
+                "url": fe.url,
+                "title": fe.title,
+            }
+            for fe in total.failed_events
+        ],
+    )
+
+
+# ============================================================================
+# Scheduler on/off
+# ============================================================================
+
+
+@router.get("/scheduler", response_model=SchedulerSettingsOut)
+def get_scheduler(
+    admin: Annotated[CurrentUser, Depends(require_admin)],
+    repo: Annotated[SchedulerSettingsRepo, Depends(get_scheduler_settings_repo)],
+) -> SchedulerSettingsOut:
+    return SchedulerSettingsOut(
+        enabled=repo.get_enabled(),
+        tick_seconds=get_settings().scraper_scheduler_tick_seconds,
+    )
+
+
+@router.put("/scheduler", response_model=SchedulerSettingsOut)
+def update_scheduler(
+    body: SchedulerSettingsUpdate,
+    admin: Annotated[CurrentUser, Depends(require_admin)],
+    repo: Annotated[SchedulerSettingsRepo, Depends(get_scheduler_settings_repo)],
+) -> SchedulerSettingsOut:
+    new_enabled = repo.set_enabled(body.enabled, updated_by=admin.id)
+    logger.info(
+        "scheduler.toggled enabled=%s by=%s", new_enabled, admin.id
+    )
+    return SchedulerSettingsOut(
+        enabled=new_enabled,
+        tick_seconds=get_settings().scraper_scheduler_tick_seconds,
     )

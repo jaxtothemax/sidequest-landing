@@ -9,16 +9,39 @@ the future scraper a pure consumer of this layer.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from threading import RLock
 from typing import Any, Protocol
 
 from app.config import Settings, get_settings
 
+# Sentinel for update() fields: lets callers distinguish "set to NULL"
+# (pass `None`) from "leave unchanged" (omit / pass `_UNSET`).
+_UNSET: Any = object()
+
+
+def _is_due(row: dict[str, Any], now: datetime) -> bool:
+    """A source is due when enabled, has an interval, and the next-scrape
+    time is at or before `now`. Never-scraped sources are always due."""
+    if not row.get("enabled"):
+        return False
+    interval = row.get("scrape_interval_minutes")
+    if interval is None:
+        return False
+    last = row.get("last_scraped_at")
+    if last is None:
+        return True
+    if isinstance(last, str):
+        last = datetime.fromisoformat(last.replace("Z", "+00:00"))
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=timezone.utc)
+    return last + timedelta(minutes=interval) <= now
+
 
 class ScrapeSourcesRepo(Protocol):
     def list_for_conference(self, conference_id: str) -> list[dict[str, Any]]: ...
+    def list_due(self, *, now: datetime | None = None) -> list[dict[str, Any]]: ...
     def get(self, source_id: str) -> dict[str, Any] | None: ...
     def create(
         self,
@@ -33,9 +56,9 @@ class ScrapeSourcesRepo(Protocol):
         self,
         source_id: str,
         *,
-        url: str | None = None,
-        enabled: bool | None = None,
-        scrape_interval_minutes: int | None = None,
+        url: str | Any = _UNSET,
+        enabled: bool | Any = _UNSET,
+        scrape_interval_minutes: int | None | Any = _UNSET,
     ) -> dict[str, Any] | None: ...
     def delete(self, source_id: str) -> bool: ...
     def record_scrape(
@@ -66,6 +89,11 @@ class InMemoryScrapeSourcesRepo:
             ]
         out.sort(key=lambda r: r["created_at"])
         return out
+
+    def list_due(self, *, now: datetime | None = None) -> list[dict[str, Any]]:
+        when = now or datetime.now(timezone.utc)
+        with self._lock:
+            return [dict(r) for r in self._rows.values() if _is_due(r, when)]
 
     def get(self, source_id: str) -> dict[str, Any] | None:
         with self._lock:
@@ -106,19 +134,19 @@ class InMemoryScrapeSourcesRepo:
         self,
         source_id: str,
         *,
-        url: str | None = None,
-        enabled: bool | None = None,
-        scrape_interval_minutes: int | None = None,
+        url: str | Any = _UNSET,
+        enabled: bool | Any = _UNSET,
+        scrape_interval_minutes: int | None | Any = _UNSET,
     ) -> dict[str, Any] | None:
         with self._lock:
             r = self._rows.get(source_id)
             if r is None:
                 return None
-            if url is not None:
+            if url is not _UNSET:
                 r["url"] = url
-            if enabled is not None:
+            if enabled is not _UNSET:
                 r["enabled"] = enabled
-            if scrape_interval_minutes is not None:
+            if scrape_interval_minutes is not _UNSET:
                 r["scrape_interval_minutes"] = scrape_interval_minutes
             r["updated_at"] = datetime.now(timezone.utc)
             return dict(r)
@@ -173,6 +201,22 @@ class SupabaseScrapeSourcesRepo:
             .data
         ) or []
 
+    def list_due(self, *, now: datetime | None = None) -> list[dict[str, Any]]:
+        # Candidate set is bounded by the partial index on (last_scraped_at)
+        # where enabled = true and scrape_interval_minutes is not null.
+        # The interval-window comparison is done in Python since PostgREST
+        # can't express "last_scraped_at + (interval_minutes * '1 min'::interval) <= now()".
+        when = now or datetime.now(timezone.utc)
+        rows = (
+            self._client.table("conference_scrape_sources")
+            .select(_COLS)
+            .eq("enabled", True)
+            .not_.is_("scrape_interval_minutes", "null")
+            .execute()
+            .data
+        ) or []
+        return [r for r in rows if _is_due(r, when)]
+
     def get(self, source_id: str) -> dict[str, Any] | None:
         rows = (
             self._client.table("conference_scrape_sources")
@@ -211,16 +255,16 @@ class SupabaseScrapeSourcesRepo:
         self,
         source_id: str,
         *,
-        url: str | None = None,
-        enabled: bool | None = None,
-        scrape_interval_minutes: int | None = None,
+        url: str | Any = _UNSET,
+        enabled: bool | Any = _UNSET,
+        scrape_interval_minutes: int | None | Any = _UNSET,
     ) -> dict[str, Any] | None:
         patch: dict[str, Any] = {}
-        if url is not None:
+        if url is not _UNSET:
             patch["url"] = url
-        if enabled is not None:
+        if enabled is not _UNSET:
             patch["enabled"] = enabled
-        if scrape_interval_minutes is not None:
+        if scrape_interval_minutes is not _UNSET:
             patch["scrape_interval_minutes"] = scrape_interval_minutes
         if not patch:
             return self.get(source_id)
